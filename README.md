@@ -19,15 +19,20 @@ View your app in AI Studio: https://ai.studio/apps/17c4ccdb-99b2-4a50-9205-24e3d
 3. Run the app:
    `npm run dev`
 
-## Cloudflare Pages + Workers AI
+## Cloudflare Deploy + Workers AI
 
-This repository uses Cloudflare Pages Functions in `functions/api/ai.js`, so deploy with **Pages commands**, not Worker commands.
+This repository is configured to deploy with `wrangler deploy` using:
+
+1. A Worker entrypoint at `worker.js` for the `/api/ai` route.
+2. Static assets served from `dist` via Wrangler assets config.
 
 Use:
 
 1. Build:
    `npm run build`
-2. Deploy to Pages:
-   `npm run deploy:pages`
+2. Deploy:
+   `npm run deploy`
 
-Do not use `wrangler deploy` for this repo. That command expects a Worker entry file (`main`) or assets-only Worker config and will fail on this Pages setup.
+Optional verification before deploying:
+
+`npm run deploy:dry`
