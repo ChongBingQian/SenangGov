@@ -24,10 +24,13 @@ import {
   LayoutGrid,
   Sparkles,
   Send,
-  Loader2
+  Loader2,
+  Cloud
 } from 'lucide-react';
 import { Screen, UserData, EligibilityResult, Service, RoadTaxData, LicenseData } from './types';
 import { GoogleGenAI } from "@google/genai";
+
+type AiProvider = 'gemini' | 'cloudflare';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('ai_assistant');
@@ -61,7 +64,15 @@ export default function App() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [userIsTyping, setUserIsTyping] = useState(false);
+  const [aiProvider, setAiProvider] = useState<AiProvider>(() => {
+    const saved = localStorage.getItem('senanggov_ai_provider');
+    return (saved === 'cloudflare' ? 'cloudflare' : 'gemini') as AiProvider;
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem('senanggov_ai_provider', aiProvider);
+  }, [aiProvider]);
 
   useEffect(() => {
     if (input.length > 0) {
@@ -102,18 +113,33 @@ export default function App() {
     }, 1000);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [...messages, userMessage].map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })),
-        config: {
-          systemInstruction: "You are SenangGov Assistant, a helpful AI for Malaysian government services (Passports, Road Tax, Licenses). \n\nRULES:\n1. Keep responses EXTREMELY SHORT and SIMPLE.\n2. If checking eligibility/status, ask ONLY ONE question at a time. Wait for the user's answer before asking the next one. \n3. Ask about 4-5 questions in total before giving a final conclusion.\n4. Base guidance on official Malaysian rules. If unsure, suggest official JPJ/Immigration portals.",
-        }
-      });
+      let responseText = '';
+
+      if (aiProvider === 'cloudflare') {
+        const allMessages = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
+        const cfRes = await fetch('/api/cloudflare-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: allMessages }),
+        });
+        if (!cfRes.ok) throw new Error(`Cloudflare AI error: ${cfRes.status}`);
+        const cfData = await cfRes.json() as { text?: string };
+        responseText = cfData.text || "I'm sorry, I couldn't process that request.";
+      } else {
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: [...messages, userMessage].map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })),
+          config: {
+            systemInstruction: "You are SenangGov Assistant, a helpful AI for Malaysian government services (Passports, Road Tax, Licenses). \n\nRULES:\n1. Keep responses EXTREMELY SHORT and SIMPLE.\n2. If checking eligibility/status, ask ONLY ONE question at a time. Wait for the user's answer before asking the next one. \n3. Ask about 4-5 questions in total before giving a final conclusion.\n4. Base guidance on official Malaysian rules. If unsure, suggest official JPJ/Immigration portals.",
+          }
+        });
+        responseText = response.text || "I'm sorry, I couldn't process that request.";
+      }
 
       const assistantMessage = { 
         role: 'assistant' as const, 
-        content: response.text || "I'm sorry, I couldn't process that request.",
+        content: responseText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'read' as const
       };
@@ -329,16 +355,45 @@ export default function App() {
                 className="flex flex-col h-full bg-slate-50"
               >
                 {/* Chat Header */}
-                <div className="p-6 bg-white border-b border-slate-100 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
-                    <Sparkles size={20} />
+                <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-slate-900">SenangGov</h2>
+                      <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                        Online & Helpful
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="font-bold text-slate-900">SenangGov</h2>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                      Online & Helpful
-                    </p>
+                  {/* AI Provider Toggle */}
+                  <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 shrink-0">
+                    <button
+                      onClick={() => setAiProvider('gemini')}
+                      title="Google Gemini AI"
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all ${
+                        aiProvider === 'gemini'
+                          ? 'bg-white text-purple-600 shadow-sm'
+                          : 'text-slate-400 hover:text-slate-600'
+                      }`}
+                    >
+                      <Sparkles size={12} />
+                      Gemini
+                    </button>
+                    <button
+                      onClick={() => setAiProvider('cloudflare')}
+                      title="Cloudflare Workers AI"
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all ${
+                        aiProvider === 'cloudflare'
+                          ? 'bg-white text-orange-500 shadow-sm'
+                          : 'text-slate-400 hover:text-slate-600'
+                      }`}
+                    >
+                      <Cloud size={12} />
+                      Cloudflare
+                    </button>
                   </div>
                 </div>
 
