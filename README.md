@@ -18,3 +18,16 @@ View your app in AI Studio: https://ai.studio/apps/17c4ccdb-99b2-4a50-9205-24e3d
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Cloudflare Pages + Workers AI
+
+This repository uses Cloudflare Pages Functions in `functions/api/ai.js`, so deploy with **Pages commands**, not Worker commands.
+
+Use:
+
+1. Build:
+   `npm run build`
+2. Deploy to Pages:
+   `npm run deploy:pages`
+
+Do not use `wrangler deploy` for this repo. That command expects a Worker entry file (`main`) or assets-only Worker config and will fail on this Pages setup.
