@@ -27,7 +27,6 @@ import {
   Loader2
 } from 'lucide-react';
 import { Screen, UserData, EligibilityResult, Service, RoadTaxData, LicenseData } from './types';
-import { GoogleGenAI } from "@google/genai";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('ai_assistant');
@@ -102,18 +101,23 @@ export default function App() {
     }, 1000);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [...messages, userMessage].map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })),
-        config: {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
           systemInstruction: "You are SenangGov Assistant, a helpful AI for Malaysian government services (Passports, Road Tax, Licenses). \n\nRULES:\n1. Keep responses EXTREMELY SHORT and SIMPLE.\n2. If checking eligibility/status, ask ONLY ONE question at a time. Wait for the user's answer before asking the next one. \n3. Ask about 4-5 questions in total before giving a final conclusion.\n4. Base guidance on official Malaysian rules. If unsure, suggest official JPJ/Immigration portals.",
-        }
+        })
       });
+
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
 
       const assistantMessage = { 
         role: 'assistant' as const, 
-        content: response.text || "I'm sorry, I couldn't process that request.",
+        content: data.text || "I'm sorry, I couldn't process that request.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'read' as const
       };
