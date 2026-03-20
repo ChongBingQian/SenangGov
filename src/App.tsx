@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronRight, 
@@ -21,12 +21,16 @@ import {
   ShieldCheck,
   Car,
   IdCard,
-  LayoutGrid
+  LayoutGrid,
+  Sparkles,
+  Send,
+  Loader2
 } from 'lucide-react';
 import { Screen, UserData, EligibilityResult, Service, RoadTaxData, LicenseData } from './types';
+import { GoogleGenAI } from "@google/genai";
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('lobby');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('ai_assistant');
   const [activeService, setActiveService] = useState<Service | null>(null);
   const [userData, setUserData] = useState<UserData>({
     age: null,
@@ -45,6 +49,87 @@ export default function App() {
     expiryStatus: null,
     renewalDuration: null,
   });
+
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; timestamp: string; status?: 'sent' | 'read' }[]>([
+    { 
+      role: 'assistant', 
+      content: "Hello! I'm your SenangGov AI Assistant. How can I help you with your government service renewals today?",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'read'
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [userIsTyping, setUserIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (input.length > 0) {
+      setUserIsTyping(true);
+    } else {
+      setUserIsTyping(false);
+    }
+  }, [input]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping, userIsTyping]);
+
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+
+    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMessage = { 
+      role: 'user' as const, 
+      content: input,
+      timestamp: now,
+      status: 'sent' as const
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsTyping(true);
+
+    // Mark user message as read after a short delay
+    setTimeout(() => {
+      setMessages(prev => prev.map((msg, i) => 
+        (i === prev.length - 1 && msg.role === 'user') ? { ...msg, status: 'read' } : msg
+      ));
+    }, 1000);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [...messages, userMessage].map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })),
+        config: {
+          systemInstruction: "You are SenangGov Assistant, a helpful AI for Malaysian government services (Passports, Road Tax, Licenses). \n\nRULES:\n1. Keep responses EXTREMELY SHORT and SIMPLE.\n2. If checking eligibility/status, ask ONLY ONE question at a time. Wait for the user's answer before asking the next one. \n3. Ask about 4-5 questions in total before giving a final conclusion.\n4. Base guidance on official Malaysian rules. If unsure, suggest official JPJ/Immigration portals.",
+        }
+      });
+
+      const assistantMessage = { 
+        role: 'assistant' as const, 
+        content: response.text || "I'm sorry, I couldn't process that request.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'read' as const
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("AI Error:", error);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: "Sorry, I'm having trouble connecting right now. Please try again later.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'read'
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   const eligibility: EligibilityResult = useMemo(() => {
     if (activeService === 'passport') {
@@ -204,30 +289,30 @@ export default function App() {
   };
 
   const handleBack = () => {
-    if (currentScreen === 'lobby') return;
-    if (currentScreen === 'passport_landing') setCurrentScreen('lobby');
+    if (currentScreen === 'ai_assistant') return;
+    if (currentScreen === 'passport_landing') setCurrentScreen('ai_assistant');
     if (currentScreen === 'passport_checker') setCurrentScreen('passport_landing');
     if (currentScreen === 'passport_guidance') setCurrentScreen('passport_checker');
     if (currentScreen === 'passport_checklist') setCurrentScreen('passport_guidance');
-    if (currentScreen === 'roadtax_landing') setCurrentScreen('lobby');
+    if (currentScreen === 'roadtax_landing') setCurrentScreen('ai_assistant');
     if (currentScreen === 'roadtax_checker') setCurrentScreen('roadtax_landing');
     if (currentScreen === 'roadtax_result') setCurrentScreen('roadtax_checker');
-    if (currentScreen === 'license_landing') setCurrentScreen('lobby');
+    if (currentScreen === 'license_landing') setCurrentScreen('ai_assistant');
     if (currentScreen === 'license_checker') setCurrentScreen('license_landing');
     if (currentScreen === 'license_result') setCurrentScreen('license_checker');
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-100">
-      <div className="max-w-md mx-auto min-h-screen flex flex-col shadow-xl bg-white relative overflow-hidden">
+    <div className="h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-100 overflow-hidden">
+      <div className="max-w-md mx-auto h-full flex flex-col shadow-xl bg-white relative overflow-hidden">
         
         {/* Header */}
-        <header className="px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+        <header className="px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">S</div>
             <h1 className="font-bold text-xl tracking-tight text-slate-800">SenangGov</h1>
           </div>
-          {currentScreen !== 'lobby' && (
+          {currentScreen !== 'ai_assistant' && (
             <button 
               onClick={handleBack}
               className="p-2 hover:bg-slate-100 rounded-full transition-colors"
@@ -237,46 +322,107 @@ export default function App() {
           )}
         </header>
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 flex flex-col overflow-hidden min-h-0">
           <AnimatePresence mode="wait">
-            {currentScreen === 'lobby' && (
+            {currentScreen === 'ai_assistant' && (
               <motion.div 
-                key="lobby"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="p-6 space-y-8 h-full flex flex-col justify-center"
+                key="ai_assistant"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex flex-col h-full bg-slate-50"
               >
-                <div className="text-center space-y-2 mb-4">
-                  <h2 className="text-3xl font-bold text-slate-900">SenangGov Services</h2>
-                  <p className="text-slate-500">Choose a service to get started</p>
+                {/* Chat Header */}
+                <div className="p-6 bg-white border-b border-slate-100 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-slate-900">SenangGov AI</h2>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                      Online & Helpful
+                    </p>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <ServiceCard 
-                    icon={<ShieldCheck className="text-emerald-600" size={24} />}
-                    title="Passport Renewal"
-                    desc="Check eligibility & step-by-step guide"
-                    onClick={() => handleServiceSelect('passport')}
-                  />
-                  <ServiceCard 
-                    icon={<Car className="text-blue-600" size={24} />}
-                    title="RoadTax Renewal"
-                    desc="Renew your vehicle road tax online"
-                    onClick={() => handleServiceSelect('roadtax')}
-                  />
-                  <ServiceCard 
-                    icon={<IdCard className="text-purple-600" size={24} />}
-                    title="Driving License"
-                    desc="Renew your Malaysian driving license"
-                    onClick={() => handleServiceSelect('license')}
-                  />
+                {/* Messages Area */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
+                  {messages.map((msg, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                    >
+                      <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed relative ${
+                        msg.role === 'user' 
+                          ? 'bg-purple-600 text-white rounded-tr-none shadow-md shadow-purple-100' 
+                          : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'
+                      }`}>
+                        {msg.content}
+                      </div>
+                      <div className={`flex items-center gap-1.5 mt-1.5 px-1 text-[10px] font-medium ${
+                        msg.role === 'user' ? 'text-slate-400' : 'text-slate-400'
+                      }`}>
+                        <span>{msg.timestamp}</span>
+                        {msg.role === 'user' && (
+                          <span className={msg.status === 'read' ? 'text-emerald-500' : 'text-slate-300'}>
+                            {msg.status === 'read' ? 'Read' : 'Sent'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {isTyping && (
+                    <div className="flex flex-col items-start">
+                      <div className="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
+                        <span className="text-xs text-slate-400 font-medium ml-1">Assistant is typing...</span>
+                      </div>
+                    </div>
+                  )}
+                  {userIsTyping && !isTyping && (
+                    <div className="flex flex-col items-end">
+                      <div className="bg-purple-50 p-3 rounded-2xl rounded-tr-none border border-purple-100 flex items-center gap-2">
+                        <span className="text-[10px] text-purple-400 font-medium">You are typing...</span>
+                        <div className="flex gap-1">
+                          <span className="w-1 h-1 bg-purple-300 rounded-full animate-pulse"></span>
+                          <span className="w-1 h-1 bg-purple-300 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
                 </div>
 
-                <div className="mt-8 p-4 bg-slate-50 rounded-2xl flex items-center gap-3">
-                  <Info className="text-slate-400 shrink-0" size={20} />
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    All information is based on the latest official guidelines from Malaysian government portals.
+                {/* Input Area */}
+                <div className="p-6 bg-white border-t border-slate-100">
+                  <div className="relative flex items-center">
+                    <input 
+                      type="text" 
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      placeholder="Ask about passport, road tax, etc..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-5 pr-14 text-sm focus:outline-none focus:border-purple-500 transition-all"
+                    />
+                    <button 
+                      onClick={handleSendMessage}
+                      disabled={!input.trim() || isTyping}
+                      className={`absolute right-2 p-2 rounded-xl transition-all ${
+                        !input.trim() || isTyping 
+                          ? 'text-slate-300' 
+                          : 'bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-100'
+                      }`}
+                    >
+                      <Send size={20} />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-3 text-center">
+                    AI can make mistakes. Verify important info on official portals.
                   </p>
                 </div>
               </motion.div>
@@ -288,7 +434,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-8 flex flex-col items-center text-center h-full justify-center"
+                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-emerald-50 rounded-3xl flex items-center justify-center mb-8">
                   <ShieldCheck size={48} className="text-emerald-600" />
@@ -317,7 +463,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Eligibility Check</h2>
@@ -431,7 +577,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${eligibility.isEligibleOnline ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
@@ -542,7 +688,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Collection Checklist</h2>
@@ -596,10 +742,10 @@ export default function App() {
                     <ExternalLink size={18} />
                   </a>
                   <button
-                    onClick={() => setCurrentScreen('lobby')}
+                    onClick={() => setCurrentScreen('ai_assistant')}
                     className="w-full text-slate-500 font-medium py-2 text-sm hover:text-slate-800 transition-colors"
                   >
-                    Back to Lobby
+                    Back to AI Assistant
                   </button>
                 </div>
               </motion.div>
@@ -611,7 +757,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-8 flex flex-col items-center text-center h-full justify-center"
+                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mb-8">
                   <Car size={48} className="text-blue-600" />
@@ -630,10 +776,10 @@ export default function App() {
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                   </button>
                   <button
-                    onClick={() => setCurrentScreen('lobby')}
+                    onClick={() => setCurrentScreen('ai_assistant')}
                     className="w-full text-slate-500 font-medium py-2 text-sm hover:text-slate-800 transition-colors"
                   >
-                    Back to Lobby
+                    Back to AI Assistant
                   </button>
                 </div>
               </motion.div>
@@ -645,7 +791,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Renewal Readiness</h2>
@@ -759,7 +905,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
@@ -850,10 +996,10 @@ export default function App() {
 
                 <div className="space-y-4 pt-4">
                   <button
-                    onClick={() => setCurrentScreen('lobby')}
+                    onClick={() => setCurrentScreen('ai_assistant')}
                     className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all"
                   >
-                    Back to Lobby
+                    Back to AI Assistant
                   </button>
                   <button
                     onClick={() => setCurrentScreen('roadtax_checker')}
@@ -871,7 +1017,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-8 flex flex-col items-center text-center h-full justify-center"
+                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-purple-50 rounded-3xl flex items-center justify-center mb-8">
                   <IdCard size={48} className="text-purple-600" />
@@ -890,10 +1036,10 @@ export default function App() {
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                   </button>
                   <button
-                    onClick={() => setCurrentScreen('lobby')}
+                    onClick={() => setCurrentScreen('ai_assistant')}
                     className="w-full text-slate-500 font-medium py-2 text-sm hover:text-slate-800 transition-colors"
                   >
-                    Back to Lobby
+                    Back to AI Assistant
                   </button>
                 </div>
               </motion.div>
@@ -905,7 +1051,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Licence Details</h2>
@@ -1007,7 +1153,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
@@ -1125,10 +1271,10 @@ export default function App() {
 
                 <div className="space-y-4 pt-4">
                   <button
-                    onClick={() => setCurrentScreen('lobby')}
+                    onClick={() => setCurrentScreen('ai_assistant')}
                     className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all"
                   >
-                    Back to Lobby
+                    Back to AI Assistant
                   </button>
                   <button
                     onClick={() => setCurrentScreen('license_checker')}
@@ -1142,20 +1288,52 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {/* Footer */}
-        <footer className="p-4 text-center border-t border-slate-50">
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-medium">SenangGov &copy; 2026</p>
-        </footer>
+        {/* Bottom Navigation Bar */}
+        <nav className="bg-white border-t border-slate-100 px-2 py-2 flex justify-around items-center shrink-0 z-20">
+          {[
+            { id: 'ai', label: 'AI Assistant', icon: Sparkles, screen: 'ai_assistant' as Screen },
+            { id: 'passport', label: 'Passport', icon: ShieldCheck, screen: 'passport_landing' as Screen, service: 'passport' as Service },
+            { id: 'roadtax', label: 'RoadTax', icon: Car, screen: 'roadtax_landing' as Screen, service: 'roadtax' as Service },
+            { id: 'license', label: 'License', icon: IdCard, screen: 'license_landing' as Screen, service: 'license' as Service },
+          ].map((item) => {
+            const active = (item.id === 'ai' && currentScreen === 'ai_assistant') ||
+                           (item.id === 'passport' && currentScreen.startsWith('passport')) ||
+                           (item.id === 'roadtax' && currentScreen.startsWith('roadtax')) ||
+                           (item.id === 'license' && currentScreen.startsWith('license'));
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setCurrentScreen(item.screen);
+                  if (item.service) setActiveService(item.service);
+                }}
+                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all relative ${
+                  active ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                <Icon size={20} className={active ? 'scale-110' : ''} />
+                <span className="text-[9px] font-bold uppercase tracking-wider">{item.label}</span>
+                {active && (
+                  <motion.div 
+                    layoutId="activeTab"
+                    className="absolute -bottom-1 w-1 h-1 bg-emerald-600 rounded-full"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
 }
 
-function ServiceCard({ icon, title, desc, onClick }: { icon: React.ReactNode, title: string, desc: string, onClick: () => void }) {
+function ServiceCard({ icon, title, desc, onClick, className = "" }: { icon: React.ReactNode, title: string, desc: string, onClick: () => void, className?: string }) {
   return (
     <button 
       onClick={onClick}
-      className="p-5 bg-white border-2 border-slate-100 rounded-3xl text-left hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-50 transition-all group"
+      className={`p-5 bg-white border-2 border-slate-100 rounded-3xl text-left hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-50 transition-all group ${className}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

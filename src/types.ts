@@ -1,4 +1,4 @@
-export type Screen = 'lobby' | 'passport_landing' | 'passport_checker' | 'passport_guidance' | 'passport_checklist' | 'roadtax_landing' | 'roadtax_checker' | 'roadtax_result' | 'license_landing' | 'license_checker' | 'license_result';
+export type Screen = 'lobby' | 'passport_landing' | 'passport_checker' | 'passport_guidance' | 'passport_checklist' | 'roadtax_landing' | 'roadtax_checker' | 'roadtax_result' | 'license_landing' | 'license_checker' | 'license_result' | 'ai_assistant';
 
 export type Service = 'passport' | 'roadtax' | 'license';
 
