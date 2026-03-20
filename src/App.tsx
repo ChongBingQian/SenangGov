@@ -53,7 +53,7 @@ export default function App() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; timestamp: string; status?: 'sent' | 'read' }[]>([
     { 
       role: 'assistant', 
-      content: "Hello! I'm your SenangGov AI Assistant. How can I help you with your government service renewals today?",
+      content: "Hello! I'm your SenangGov Assistant. How can I help you with your government service renewals today?",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       status: 'read'
     }
@@ -307,20 +307,16 @@ export default function App() {
       <div className="max-w-md mx-auto h-full flex flex-col shadow-xl bg-white relative overflow-hidden">
         
         {/* Header */}
-        <header className="px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">S</div>
-            <h1 className="font-bold text-xl tracking-tight text-slate-800">SenangGov</h1>
-          </div>
-          {currentScreen !== 'ai_assistant' && (
+        {currentScreen !== 'ai_assistant' && (
+          <header className="px-6 py-4 flex items-center justify-start border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
             <button 
               onClick={handleBack}
               className="p-2 hover:bg-slate-100 rounded-full transition-colors"
             >
               <ArrowLeft size={20} />
             </button>
-          )}
-        </header>
+          </header>
+        )}
 
         <main className="flex-1 flex flex-col overflow-hidden min-h-0">
           <AnimatePresence mode="wait">
@@ -338,7 +334,7 @@ export default function App() {
                     <Sparkles size={20} />
                   </div>
                   <div>
-                    <h2 className="font-bold text-slate-900">SenangGov AI</h2>
+                    <h2 className="font-bold text-slate-900">SenangGov</h2>
                     <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center gap-1">
                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                       Online & Helpful
