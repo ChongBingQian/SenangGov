@@ -1,6 +1,11 @@
+import { buildRagInstruction, retrieveKnowledgeContext } from './rag.js';
+
 export async function onRequestPost({ request, env }) {
   try {
     const payload = await request.json();
+    const inboundMessages = Array.isArray(payload.messages) ? payload.messages : [];
+    const ragContext = retrieveKnowledgeContext(inboundMessages);
+    const ragInstruction = buildRagInstruction(ragContext);
 
     // The frontend sends { messages: [...], systemInstruction: "..." }
     const messages = [];
@@ -10,8 +15,12 @@ export async function onRequestPost({ request, env }) {
       messages.push({ role: 'system', content: payload.systemInstruction });
     }
 
-    if (payload.messages && Array.isArray(payload.messages)) {
-      payload.messages.forEach(msg => {
+    if (ragInstruction) {
+      messages.push({ role: 'system', content: ragInstruction });
+    }
+
+    if (inboundMessages.length > 0) {
+      inboundMessages.forEach(msg => {
         messages.push({
           role: msg.role === 'assistant' ? 'assistant' : 'user',
           content: msg.content
@@ -22,7 +31,10 @@ export async function onRequestPost({ request, env }) {
     // Call the Cloudflare AI binding (named "AI")
     const response = await env.AI.run('@cf/meta/llama-3-8b-instruct', { messages });
     
-    return new Response(JSON.stringify({ text: response.response }), {
+    return new Response(JSON.stringify({
+      text: response.response,
+      sources: ragContext.map((entry) => entry.title),
+    }), {
       headers: { 'Content-Type': 'application/json' }
     });
 

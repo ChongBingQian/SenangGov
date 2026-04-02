@@ -1,3 +1,5 @@
+import { buildRagInstruction, retrieveKnowledgeContext } from './functions/api/rag.js';
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -18,14 +20,21 @@ export default {
 async function handleAiRequest(request, env) {
   try {
     const payload = await request.json();
+    const inboundMessages = Array.isArray(payload.messages) ? payload.messages : [];
+    const ragContext = retrieveKnowledgeContext(inboundMessages);
+    const ragInstruction = buildRagInstruction(ragContext);
     const messages = [];
 
     if (payload.systemInstruction) {
       messages.push({ role: 'system', content: payload.systemInstruction });
     }
 
-    if (Array.isArray(payload.messages)) {
-      for (const msg of payload.messages) {
+    if (ragInstruction) {
+      messages.push({ role: 'system', content: ragInstruction });
+    }
+
+    if (inboundMessages.length > 0) {
+      for (const msg of inboundMessages) {
         messages.push({
           role: msg.role === 'assistant' ? 'assistant' : 'user',
           content: msg.content,
@@ -35,7 +44,10 @@ async function handleAiRequest(request, env) {
 
     const aiResponse = await env.AI.run('@cf/meta/llama-3-8b-instruct', { messages });
 
-    return new Response(JSON.stringify({ text: aiResponse.response }), {
+    return new Response(JSON.stringify({
+      text: aiResponse.response,
+      sources: ragContext.map((entry) => entry.title),
+    }), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
