@@ -49,7 +49,7 @@ export default function App() {
     renewalDuration: null,
   });
 
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; timestamp: string; status?: 'sent' | 'read' }[]>([
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; timestamp: string; status?: 'sent' | 'read'; sources?: string[] }[]>([
     { 
       role: 'assistant', 
       content: "Hello! I'm your SenangGov Assistant. How can I help you with your government service renewals today?",
@@ -119,7 +119,8 @@ export default function App() {
         role: 'assistant' as const, 
         content: data.text || "I'm sorry, I couldn't process that request.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'read' as const
+        status: 'read' as const,
+        sources: Array.isArray(data.sources) ? data.sources : []
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
@@ -359,6 +360,11 @@ export default function App() {
                           : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'
                       }`}>
                         {msg.content}
+                        {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                            <span className="font-semibold">Sources:</span> {msg.sources.join(' • ')}
+                          </div>
+                        )}
                       </div>
                       <div className={`flex items-center gap-1.5 mt-1.5 px-1 text-[10px] font-medium ${
                         msg.role === 'user' ? 'text-slate-400' : 'text-slate-400'

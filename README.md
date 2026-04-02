@@ -106,9 +106,10 @@ Two server-side implementations exist:
 Both handlers:
 
 - Accept JSON payload with `messages` and optional `systemInstruction`
+- Retrieve relevant snippets from `functions/api/rag.js` and inject them as system context
 - Normalize message roles (`user`, `assistant`, optional `system`)
 - Call Cloudflare Workers AI model `@cf/meta/llama-3-8b-instruct`
-- Return `{ "text": "..." }`
+- Return `{ "text": "...", "sources": ["..."] }` (sources may be empty)
 
 ## Project Structure
 
@@ -203,7 +204,12 @@ This can be useful if you want to test with Cloudflare Pages-style routing.
 ## Environment Notes
 
 - `.env.example` includes an optional `APP_URL` placeholder.
-- Runtime AI path uses Cloudflare Workers AI via the `AI` binding (`env.AI`).
+- Runtime AI uses either:
+	- Cloudflare Workers AI binding (`env.AI`), or
+	- Cloudflare REST fallback with `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
+- For Worker deployment, set fallback vars as secrets if needed:
+	- `wrangler secret put CLOUDFLARE_API_TOKEN`
+	- `wrangler secret put CLOUDFLARE_ACCOUNT_ID`
 
 ## NPM Scripts
 
