@@ -10,6 +10,8 @@ The app includes a chat-first UI and a Cloudflare AI-backed `/api/ai` endpoint.
 
 ## Tech Stack
 
+- Visual Studio Code
+- GPT-5.3 Codex
 - React 19 + TypeScript
 - Vite 6
 - Tailwind CSS 4
