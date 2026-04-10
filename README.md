@@ -44,3 +44,20 @@ The frontend proxies `/api/*` calls to the Express server on `SERVER_PORT`.
 - `npm run build` - create production build
 - `npm run preview` - preview production build
 - `npm run lint` - type-check with TypeScript
+
+## Cloudflare deployment
+
+This repo now includes `wrangler.jsonc` and `worker.ts` for Cloudflare deploys.
+
+- The worker serves `./dist` as static assets.
+- The `/api/cloudflare-chat` endpoint runs via the Cloudflare AI binding.
+
+Typical CI/CD deploy flow:
+
+1. Build assets:
+
+   npm run build
+
+2. Upload a new worker version:
+
+   npx wrangler versions upload

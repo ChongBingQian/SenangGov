@@ -1,0 +1,12 @@
+{
+  "name": "senanggov",
+  "compatibility_date": "2026-04-10",
+  "main": "worker.ts",
+  "ai": {
+    "binding": "AI"
+  },
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  }
+}
