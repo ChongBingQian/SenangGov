@@ -1,1 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Public+Sans:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
+
+:root {
+	--primary: #003670;
+	--primary-container: #004d99;
+	--on-primary: #f8f9fa;
+	--on-secondary-container: #526772;
+	--error: #ba1a1a;
+	--tertiary-container: #843700;
+	--surface: #f8f9fa;
+	--surface-container-low: #f3f4f5;
+	--surface-container-highest: #e1e3e4;
+	--surface-container-lowest: #ffffff;
+	--outline-ghost: rgba(194, 198, 211, 0.15);
+	--on-surface: #191c1d;
+	--on-surface-variant: #5f6368;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: 'Inter', sans-serif;
+	color: var(--on-surface);
+	background:
+		radial-gradient(1200px 500px at 85% -5%, rgba(0, 54, 112, 0.09), transparent 52%),
+		radial-gradient(900px 400px at -10% 10%, rgba(82, 103, 114, 0.1), transparent 55%),
+		var(--surface);
+}
+
+.font-display {
+	font-family: 'Public Sans', sans-serif;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+.diplomat-app {
+	background: transparent;
+}
+
+.diplomat-shell {
+	background: linear-gradient(180deg, rgba(248, 249, 250, 0.95) 0%, rgba(243, 244, 245, 0.95) 100%);
+	box-shadow: 0 22px 42px rgba(25, 28, 29, 0.08);
+}
+
+.diplomat-surface {
+	background:
+		linear-gradient(145deg, rgba(248, 249, 250, 0.96) 0%, rgba(243, 244, 245, 0.98) 100%);
+}
+
+.diplomat-screen {
+	background:
+		linear-gradient(160deg, rgba(248, 249, 250, 0.82) 0%, rgba(243, 244, 245, 0.94) 100%);
+}
+
+.diplomat-glass {
+	background: rgba(248, 249, 250, 0.8);
+	backdrop-filter: blur(12px);
+}
+
+.icon-btn {
+	width: 40px;
+	height: 40px;
+	border: 0;
+	border-radius: 9999px;
+	background: var(--surface-container-highest);
+	color: var(--on-surface);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.icon-btn:hover {
+	transform: translateY(-1px);
+}
+
+.chat-bar {
+	background: var(--surface-container-lowest);
+	border-radius: 9999px;
+	box-shadow: 0 8px 24px rgba(25, 28, 29, 0.06);
+}
+
+.bubble-assistant {
+	background: var(--surface-container-highest);
+}
+
+.bubble-user {
+	background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+}
+
+.btn-primary {
+	border: 0;
+	background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+	box-shadow: 0 10px 20px rgba(0, 54, 112, 0.22);
+}
+
+.diplomat-app .bg-slate-50,
+.diplomat-app .bg-slate-100,
+.diplomat-app .bg-white {
+	background-color: var(--surface-container-lowest) !important;
+}
+
+.diplomat-app .bg-amber-50,
+.diplomat-app .bg-rose-50,
+.diplomat-app .bg-emerald-50,
+.diplomat-app .bg-blue-50,
+.diplomat-app .bg-purple-50 {
+	background-color: var(--surface-container-highest) !important;
+}
+
+.diplomat-app .border,
+.diplomat-app .border-2,
+.diplomat-app .border-slate-100,
+.diplomat-app .border-slate-200,
+.diplomat-app .border-emerald-100,
+.diplomat-app .border-purple-100,
+.diplomat-app .border-blue-100,
+.diplomat-app .border-amber-100,
+.diplomat-app .border-rose-100 {
+	border-color: var(--outline-ghost) !important;
+}
+
+.diplomat-app .text-slate-900,
+.diplomat-app .text-slate-800,
+.diplomat-app .text-slate-700,
+.diplomat-app .text-slate-600 {
+	color: var(--on-surface) !important;
+}
+
+.diplomat-app .text-slate-500,
+.diplomat-app .text-slate-400,
+.diplomat-app .text-slate-300 {
+	color: var(--on-surface-variant) !important;
+}
+
+.diplomat-app .bg-slate-900,
+.diplomat-app .bg-emerald-600,
+.diplomat-app .bg-blue-600,
+.diplomat-app .bg-purple-600,
+.diplomat-app .hover\:bg-slate-900:hover,
+.diplomat-app .hover\:bg-emerald-700:hover,
+.diplomat-app .hover\:bg-blue-700:hover,
+.diplomat-app .hover\:bg-purple-700:hover,
+.diplomat-app .hover\:bg-rose-700:hover {
+	background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%) !important;
+	color: var(--on-primary) !important;
+}
+
+.diplomat-app .text-emerald-600,
+.diplomat-app .text-blue-600,
+.diplomat-app .text-purple-600,
+.diplomat-app .text-emerald-700,
+.diplomat-app .text-blue-700,
+.diplomat-app .text-purple-700 {
+	color: var(--primary) !important;
+}
+
+.diplomat-app .text-rose-600,
+.diplomat-app .text-rose-700,
+.diplomat-app .text-rose-900 {
+	color: var(--error) !important;
+}
+
+.diplomat-app .text-amber-600,
+.diplomat-app .text-amber-700,
+.diplomat-app .text-amber-900 {
+	color: var(--tertiary-container) !important;
+}
+
+@media (max-width: 640px) {
+	.diplomat-shell {
+		box-shadow: none;
+	}
+}

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronRight, 
@@ -12,7 +12,6 @@ import {
   Camera, 
   CreditCard, 
   FileText, 
-  MapPin, 
   Info,
   ArrowLeft,
   ExternalLink,
@@ -21,10 +20,8 @@ import {
   ShieldCheck,
   Car,
   IdCard,
-  LayoutGrid,
   Sparkles,
   Send,
-  Loader2,
   Cloud
 } from 'lucide-react';
 import { Screen, UserData, EligibilityResult, Service, RoadTaxData, LicenseData } from './types';
@@ -307,13 +304,6 @@ export default function App() {
     return 0;
   }, [userData.age, activeService, licenseData]);
 
-  const handleServiceSelect = (service: Service) => {
-    setActiveService(service);
-    if (service === 'passport') setCurrentScreen('passport_landing');
-    else if (service === 'roadtax') setCurrentScreen('roadtax_landing');
-    else if (service === 'license') setCurrentScreen('license_landing');
-  };
-
   const handleBack = () => {
     if (currentScreen === 'ai_assistant') return;
     if (currentScreen === 'passport_landing') setCurrentScreen('ai_assistant');
@@ -329,15 +319,15 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-100 overflow-hidden">
-      <div className="max-w-md mx-auto h-full flex flex-col shadow-xl bg-white relative overflow-hidden">
+    <div className="diplomat-app h-screen overflow-hidden">
+      <div className="diplomat-shell max-w-md mx-auto h-full flex flex-col relative overflow-hidden">
         
         {/* Header */}
         {currentScreen !== 'ai_assistant' && (
-          <header className="px-6 py-4 flex items-center justify-start border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
+          <header className="px-6 py-4 flex items-center justify-start diplomat-glass sticky top-0 z-10 shrink-0">
             <button 
               onClick={handleBack}
-              className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+              className="icon-btn"
             >
               <ArrowLeft size={20} />
             </button>
@@ -352,31 +342,31 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="flex flex-col h-full bg-slate-50"
+                className="flex flex-col h-full diplomat-surface"
               >
                 {/* Chat Header */}
-                <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between gap-3">
+                <div className="px-5 pt-6 pb-4 diplomat-glass flex items-center justify-between gap-3 shrink-0">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                    <div className="w-10 h-10 bg-[color:var(--surface-container-highest)] rounded-2xl flex items-center justify-center text-[color:var(--primary)]">
                       <Sparkles size={20} />
                     </div>
                     <div>
-                      <h2 className="font-bold text-slate-900">SenangGov</h2>
-                      <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        Online & Helpful
+                      <h2 className="font-display text-[1.35rem] leading-none text-[color:var(--on-surface)]">The Sovereign Assistant</h2>
+                      <p className="text-[10px] text-[color:var(--on-secondary-container)] font-bold uppercase tracking-[0.1em] flex items-center gap-1 mt-1">
+                        <span className="w-1.5 h-1.5 bg-[color:var(--on-secondary-container)] rounded-full animate-pulse"></span>
+                        Digital Diplomat Online
                       </p>
                     </div>
                   </div>
                   {/* AI Provider Toggle */}
-                  <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 shrink-0">
+                  <div className="flex items-center bg-[color:var(--surface-container-low)] rounded-full p-1 gap-1 shrink-0">
                     <button
                       onClick={() => setAiProvider('gemini')}
                       title="Google Gemini AI"
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${
                         aiProvider === 'gemini'
-                          ? 'bg-white text-purple-600 shadow-sm'
-                          : 'text-slate-400 hover:text-slate-600'
+                          ? 'bg-white text-[color:var(--primary)] shadow-sm'
+                          : 'text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]'
                       }`}
                     >
                       <Sparkles size={12} />
@@ -385,10 +375,10 @@ export default function App() {
                     <button
                       onClick={() => setAiProvider('cloudflare')}
                       title="Cloudflare Workers AI"
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${
                         aiProvider === 'cloudflare'
-                          ? 'bg-white text-orange-500 shadow-sm'
-                          : 'text-slate-400 hover:text-slate-600'
+                          ? 'bg-white text-[color:var(--tertiary-container)] shadow-sm'
+                          : 'text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]'
                       }`}
                     >
                       <Cloud size={12} />
@@ -398,25 +388,25 @@ export default function App() {
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
+                <div className="flex-1 overflow-y-auto px-5 py-6 min-h-0">
                   {messages.map((msg, idx) => (
                     <div 
                       key={idx} 
-                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} ${idx > 0 ? (messages[idx - 1].role === msg.role ? 'mt-3' : 'mt-6') : ''}`}
                     >
-                      <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed relative ${
+                      <div className={`max-w-[85%] px-4 py-3.5 text-[0.875rem] leading-relaxed relative shadow-sm ${
                         msg.role === 'user' 
-                          ? 'bg-purple-600 text-white rounded-tr-none shadow-md shadow-purple-100' 
-                          : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'
+                          ? 'bubble-user text-[color:var(--on-primary)] rounded-[1.5rem] rounded-br-md' 
+                          : 'bubble-assistant text-[color:var(--on-surface)] rounded-[1.5rem] rounded-bl-md'
                       }`}>
                         {msg.content}
                       </div>
-                      <div className={`flex items-center gap-1.5 mt-1.5 px-1 text-[10px] font-medium ${
-                        msg.role === 'user' ? 'text-slate-400' : 'text-slate-400'
+                      <div className={`flex items-center gap-1.5 mt-1.5 px-1 text-[10px] font-medium text-[color:var(--on-surface-variant)] ${
+                        msg.role === 'user' ? 'justify-end' : 'justify-start'
                       }`}>
                         <span>{msg.timestamp}</span>
                         {msg.role === 'user' && (
-                          <span className={msg.status === 'read' ? 'text-emerald-500' : 'text-slate-300'}>
+                          <span className={msg.status === 'read' ? 'text-[color:var(--on-secondary-container)]' : 'opacity-60'}>
                             {msg.status === 'read' ? 'Read' : 'Sent'}
                           </span>
                         )}
@@ -425,23 +415,23 @@ export default function App() {
                   ))}
                   {isTyping && (
                     <div className="flex flex-col items-start">
-                      <div className="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex items-center gap-2">
+                      <div className="bubble-assistant px-4 py-3 rounded-[1.5rem] rounded-bl-md shadow-sm flex items-center gap-2">
                         <div className="flex gap-1">
-                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[color:var(--primary-container)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[color:var(--primary-container)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[color:var(--primary-container)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                         </div>
-                        <span className="text-xs text-slate-400 font-medium ml-1">Assistant is typing...</span>
+                        <span className="text-xs text-[color:var(--on-surface-variant)] font-medium ml-1">Assistant is typing...</span>
                       </div>
                     </div>
                   )}
                   {userIsTyping && !isTyping && (
                     <div className="flex flex-col items-end">
-                      <div className="bg-purple-50 p-3 rounded-2xl rounded-tr-none border border-purple-100 flex items-center gap-2">
-                        <span className="text-[10px] text-purple-400 font-medium">You are typing...</span>
+                      <div className="bg-[color:var(--surface-container-highest)] px-3 py-2.5 rounded-[1.5rem] rounded-br-md flex items-center gap-2">
+                        <span className="text-[10px] text-[color:var(--primary-container)] font-medium">You are typing...</span>
                         <div className="flex gap-1">
-                          <span className="w-1 h-1 bg-purple-300 rounded-full animate-pulse"></span>
-                          <span className="w-1 h-1 bg-purple-300 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></span>
+                          <span className="w-1 h-1 bg-[color:var(--primary-container)] rounded-full animate-pulse"></span>
+                          <span className="w-1 h-1 bg-[color:var(--primary-container)] rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></span>
                         </div>
                       </div>
                     </div>
@@ -450,29 +440,29 @@ export default function App() {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-6 bg-white border-t border-slate-100">
-                  <div className="relative flex items-center">
+                <div className="p-5 shrink-0">
+                  <div className="chat-bar relative flex items-center">
                     <input 
                       type="text" 
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Ask about passport, road tax, etc..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-5 pr-14 text-sm focus:outline-none focus:border-purple-500 transition-all"
+                      className="w-full bg-transparent rounded-full py-4 pl-5 pr-14 text-sm focus:outline-none text-[color:var(--on-surface)] placeholder:text-[color:var(--on-surface-variant)]"
                     />
                     <button 
                       onClick={handleSendMessage}
                       disabled={!input.trim() || isTyping}
-                      className={`absolute right-2 p-2 rounded-xl transition-all ${
+                      className={`absolute right-2 p-2.5 rounded-full transition-all ${
                         !input.trim() || isTyping 
-                          ? 'text-slate-300' 
-                          : 'bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-100'
+                          ? 'text-[color:var(--on-surface-variant)] opacity-60' 
+                          : 'btn-primary text-[color:var(--on-primary)]'
                       }`}
                     >
-                      <Send size={20} />
+                      <Send size={18} />
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-3 text-center">
+                  <p className="text-[10px] text-[color:var(--on-surface-variant)] mt-3 text-center">
                     AI can make mistakes. Verify important info on official portals.
                   </p>
                 </div>
@@ -485,7 +475,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
+                className="diplomat-screen p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-emerald-50 rounded-3xl flex items-center justify-center mb-8">
                   <ShieldCheck size={48} className="text-emerald-600" />
@@ -514,7 +504,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Eligibility Check</h2>
@@ -628,7 +618,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${eligibility.isEligibleOnline ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
@@ -739,7 +729,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Collection Checklist</h2>
@@ -808,7 +798,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
+                className="diplomat-screen p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mb-8">
                   <Car size={48} className="text-blue-600" />
@@ -842,7 +832,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Renewal Readiness</h2>
@@ -956,7 +946,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
@@ -1068,7 +1058,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
+                className="diplomat-screen p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-purple-50 rounded-3xl flex items-center justify-center mb-8">
                   <IdCard size={48} className="text-purple-600" />
@@ -1102,7 +1092,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Licence Details</h2>
@@ -1204,7 +1194,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
@@ -1340,7 +1330,7 @@ export default function App() {
         </main>
 
         {/* Bottom Navigation Bar */}
-        <nav className="bg-white border-t border-slate-100 px-2 py-2 flex justify-around items-center shrink-0 z-20">
+        <nav className="diplomat-glass px-2 py-2 flex justify-around items-center shrink-0 z-20">
           {[
             { id: 'ai', label: 'AI Assistant', icon: Sparkles, screen: 'ai_assistant' as Screen },
             { id: 'passport', label: 'Passport', icon: ShieldCheck, screen: 'passport_landing' as Screen, service: 'passport' as Service },
@@ -1359,8 +1349,8 @@ export default function App() {
                   setCurrentScreen(item.screen);
                   if (item.service) setActiveService(item.service);
                 }}
-                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all relative ${
-                  active ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'
+                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-full transition-all relative ${
+                  active ? 'text-[color:var(--primary)]' : 'text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]'
                 }`}
               >
                 <Icon size={20} className={active ? 'scale-110' : ''} />
@@ -1368,7 +1358,7 @@ export default function App() {
                 {active && (
                   <motion.div 
                     layoutId="activeTab"
-                    className="absolute -bottom-1 w-1 h-1 bg-emerald-600 rounded-full"
+                    className="absolute -bottom-1 w-1 h-1 bg-[color:var(--primary)] rounded-full"
                   />
                 )}
               </button>
@@ -1380,32 +1370,10 @@ export default function App() {
   );
 }
 
-function ServiceCard({ icon, title, desc, onClick, className = "" }: { icon: React.ReactNode, title: string, desc: string, onClick: () => void, className?: string }) {
-  return (
-    <button 
-      onClick={onClick}
-      className={`p-5 bg-white border-2 border-slate-100 rounded-3xl text-left hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-50 transition-all group ${className}`}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-white transition-colors">
-            {icon}
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900">{title}</h3>
-            <p className="text-xs text-slate-500">{desc}</p>
-          </div>
-        </div>
-        <ChevronRight size={20} className="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
-      </div>
-    </button>
-  );
-}
-
 function Step({ number, title, desc }: { number: number, title: string, desc: string }) {
   return (
     <div className="flex gap-4 relative z-10">
-      <div className="w-8 h-8 rounded-full bg-white border-2 border-emerald-600 flex items-center justify-center shrink-0 font-bold text-emerald-600 text-sm shadow-sm">
+      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 font-bold text-[color:var(--primary)] text-sm shadow-sm">
         {number}
       </div>
       <div>
@@ -1418,9 +1386,9 @@ function Step({ number, title, desc }: { number: number, title: string, desc: st
 
 function CheckItem({ text }: { text: string }) {
   return (
-    <li className="flex items-center gap-3 text-sm text-slate-600">
-      <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
-        <CheckCircle2 size={14} className="text-emerald-600" />
+    <li className="flex items-center gap-3 text-sm text-[color:var(--on-surface)]">
+      <div className="w-5 h-5 rounded-md bg-[color:var(--surface-container-highest)] flex items-center justify-center shrink-0">
+        <CheckCircle2 size={14} className="text-[color:var(--on-secondary-container)]" />
       </div>
       {text}
     </li>

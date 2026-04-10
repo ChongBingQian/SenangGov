@@ -1,45 +1,46 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# SenangGov
 
-# Run and deploy your AI Studio app
+SenangGov is a Malaysian government renewal helper for:
 
-This contains everything you need to run your app locally.
+- Passport renewal
+- Road tax renewal readiness
+- Driving licence renewal guidance
 
-View your app in AI Studio: https://ai.studio/apps/17c4ccdb-99b2-4a50-9205-24e3d037efb7
+It includes a chat assistant with support for Gemini and Cloudflare Workers AI.
 
-## Run Locally
+## Prerequisites
 
-**Prerequisites:**  Node.js
+- Node.js 20+
 
+## Setup
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
 
-## Cloudflare Workers AI (Optional)
+   npm install
 
-The AI assistant supports **Cloudflare Workers AI** as an alternative to Google Gemini. A toggle in the chat header lets users switch between providers at any time.
+2. Create `.env.local` with your credentials:
 
-To enable Cloudflare AI:
+   GEMINI_API_KEY=your_gemini_api_key
+   CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
+   CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
+   SERVER_PORT=3001
 
-1. Obtain your **Cloudflare Account ID** from the [Cloudflare dashboard](https://dash.cloudflare.com/) (Account > Overview).
-2. Create a **Cloudflare API Token** with *Workers AI (read)* permission at <https://dash.cloudflare.com/profile/api-tokens>.
-3. Add the credentials to `.env.local`:
-   ```
-   CLOUDFLARE_ACCOUNT_ID=your_account_id
-   CLOUDFLARE_API_TOKEN=your_api_token
-   ```
-4. Start the API server (in a separate terminal):
-   ```
-   npm run server
-   ```
-5. Start the Vite dev server as usual:
-   ```
-   npm run dev
-   ```
+## Run locally
 
-The Vite dev server proxies all `/api/*` requests to the Express server (default port `3001`).  
-The model used is **`@cf/meta/llama-3.1-8b-instruct`** (Llama 3.1 8B).
+Run frontend:
+
+npm run dev
+
+Run API server (separate terminal):
+
+npm run server
+
+The frontend proxies `/api/*` calls to the Express server on `SERVER_PORT`.
+
+## Useful scripts
+
+- `npm run dev` - start Vite dev server
+- `npm run server` - start Express API server
+- `npm run build` - create production build
+- `npm run preview` - preview production build
+- `npm run lint` - type-check with TypeScript
