@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronRight, 
@@ -304,6 +304,13 @@ export default function App() {
     return 0;
   }, [userData.age, activeService, licenseData]);
 
+  const handleServiceSelect = (service: Service) => {
+    setActiveService(service);
+    if (service === 'passport') setCurrentScreen('passport_landing');
+    else if (service === 'roadtax') setCurrentScreen('roadtax_landing');
+    else if (service === 'license') setCurrentScreen('license_landing');
+  };
+
   const handleBack = () => {
     if (currentScreen === 'ai_assistant') return;
     if (currentScreen === 'passport_landing') setCurrentScreen('ai_assistant');
@@ -319,15 +326,15 @@ export default function App() {
   };
 
   return (
-    <div className="diplomat-app h-screen overflow-hidden">
-      <div className="diplomat-shell max-w-md mx-auto h-full flex flex-col relative overflow-hidden">
+    <div className="diplomat min-h-screen bg-[var(--surface)] text-[var(--on-surface)] overflow-hidden selection:bg-[color:rgba(0,54,112,0.14)]">
+      <div className="app-shell max-w-md mx-auto h-screen flex flex-col relative overflow-hidden">
         
         {/* Header */}
         {currentScreen !== 'ai_assistant' && (
-          <header className="px-6 py-4 flex items-center justify-start diplomat-glass sticky top-0 z-10 shrink-0">
+          <header className="glass-header px-6 py-4 flex items-center justify-start sticky top-0 z-10 shrink-0">
             <button 
               onClick={handleBack}
-              className="icon-btn"
+              className="chip-button p-2"
             >
               <ArrowLeft size={20} />
             </button>
@@ -342,31 +349,31 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="flex flex-col h-full diplomat-surface"
+                className="flex flex-col h-full bg-[var(--surface-container-low)]"
               >
                 {/* Chat Header */}
-                <div className="px-5 pt-6 pb-4 diplomat-glass flex items-center justify-between gap-3 shrink-0">
+                <div className="glass-header p-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[color:var(--surface-container-highest)] rounded-2xl flex items-center justify-center text-[color:var(--primary)]">
+                    <div className="w-10 h-10 bg-[var(--surface-container-highest)] rounded-xl flex items-center justify-center text-[var(--primary)]">
                       <Sparkles size={20} />
                     </div>
                     <div>
-                      <h2 className="font-display text-[1.35rem] leading-none text-[color:var(--on-surface)]">The Sovereign Assistant</h2>
-                      <p className="text-[10px] text-[color:var(--on-secondary-container)] font-bold uppercase tracking-[0.1em] flex items-center gap-1 mt-1">
-                        <span className="w-1.5 h-1.5 bg-[color:var(--on-secondary-container)] rounded-full animate-pulse"></span>
-                        Digital Diplomat Online
+                      <h2 className="font-display font-bold text-[var(--on-surface)]">SenangGov</h2>
+                      <p className="status-chip status-chip-ready mt-1">
+                        <span className="w-1.5 h-1.5 bg-[var(--ready)] rounded-full animate-pulse"></span>
+                        Online & Helpful
                       </p>
                     </div>
                   </div>
                   {/* AI Provider Toggle */}
-                  <div className="flex items-center bg-[color:var(--surface-container-low)] rounded-full p-1 gap-1 shrink-0">
+                  <div className="flex items-center bg-[var(--surface-container-highest)] rounded-full p-1 gap-1 shrink-0">
                     <button
                       onClick={() => setAiProvider('gemini')}
                       title="Google Gemini AI"
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${
                         aiProvider === 'gemini'
-                          ? 'bg-white text-[color:var(--primary)] shadow-sm'
-                          : 'text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]'
+                          ? 'bg-[var(--surface)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]'
+                          : 'text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]'
                       }`}
                     >
                       <Sparkles size={12} />
@@ -375,10 +382,10 @@ export default function App() {
                     <button
                       onClick={() => setAiProvider('cloudflare')}
                       title="Cloudflare Workers AI"
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${
                         aiProvider === 'cloudflare'
-                          ? 'bg-white text-[color:var(--tertiary-container)] shadow-sm'
-                          : 'text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]'
+                          ? 'bg-[var(--surface)] text-[var(--primary-container)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]'
+                          : 'text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]'
                       }`}
                     >
                       <Cloud size={12} />
@@ -388,25 +395,24 @@ export default function App() {
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto px-5 py-6 min-h-0">
+                <div className="flex-1 overflow-y-auto p-6 min-h-0">
                   {messages.map((msg, idx) => (
                     <div 
                       key={idx} 
-                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} ${idx > 0 ? (messages[idx - 1].role === msg.role ? 'mt-3' : 'mt-6') : ''}`}
+                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                      style={{ marginTop: idx === 0 ? 0 : (messages[idx - 1].role === msg.role ? 12 : 24) }}
                     >
-                      <div className={`max-w-[85%] px-4 py-3.5 text-[0.875rem] leading-relaxed relative shadow-sm ${
+                      <div className={`max-w-[85%] p-4 text-sm leading-relaxed relative ${
                         msg.role === 'user' 
-                          ? 'bubble-user text-[color:var(--on-primary)] rounded-[1.5rem] rounded-br-md' 
-                          : 'bubble-assistant text-[color:var(--on-surface)] rounded-[1.5rem] rounded-bl-md'
+                          ? 'bubble bubble-user' 
+                          : 'bubble bubble-assistant'
                       }`}>
                         {msg.content}
                       </div>
-                      <div className={`flex items-center gap-1.5 mt-1.5 px-1 text-[10px] font-medium text-[color:var(--on-surface-variant)] ${
-                        msg.role === 'user' ? 'justify-end' : 'justify-start'
-                      }`}>
+                      <div className="flex items-center gap-1.5 mt-1.5 px-1 text-[10px] font-medium text-[var(--on-surface-variant)]">
                         <span>{msg.timestamp}</span>
                         {msg.role === 'user' && (
-                          <span className={msg.status === 'read' ? 'text-[color:var(--on-secondary-container)]' : 'opacity-60'}>
+                          <span className={msg.status === 'read' ? 'text-[var(--ready)]' : 'text-[color:rgba(79,93,99,0.6)]'}>
                             {msg.status === 'read' ? 'Read' : 'Sent'}
                           </span>
                         )}
@@ -415,23 +421,23 @@ export default function App() {
                   ))}
                   {isTyping && (
                     <div className="flex flex-col items-start">
-                      <div className="bubble-assistant px-4 py-3 rounded-[1.5rem] rounded-bl-md shadow-sm flex items-center gap-2">
+                      <div className="bubble bubble-assistant p-4 flex items-center gap-2">
                         <div className="flex gap-1">
-                          <span className="w-1.5 h-1.5 bg-[color:var(--primary-container)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                          <span className="w-1.5 h-1.5 bg-[color:var(--primary-container)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                          <span className="w-1.5 h-1.5 bg-[color:var(--primary-container)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                         </div>
-                        <span className="text-xs text-[color:var(--on-surface-variant)] font-medium ml-1">Assistant is typing...</span>
+                        <span className="text-xs text-[var(--on-surface-variant)] font-medium ml-1">Assistant is typing...</span>
                       </div>
                     </div>
                   )}
                   {userIsTyping && !isTyping && (
                     <div className="flex flex-col items-end">
-                      <div className="bg-[color:var(--surface-container-highest)] px-3 py-2.5 rounded-[1.5rem] rounded-br-md flex items-center gap-2">
-                        <span className="text-[10px] text-[color:var(--primary-container)] font-medium">You are typing...</span>
+                      <div className="bubble bubble-user p-3 rounded-tr-[0.5rem] flex items-center gap-2 opacity-[0.85]">
+                        <span className="text-[10px] text-white/85 font-medium">You are typing...</span>
                         <div className="flex gap-1">
-                          <span className="w-1 h-1 bg-[color:var(--primary-container)] rounded-full animate-pulse"></span>
-                          <span className="w-1 h-1 bg-[color:var(--primary-container)] rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></span>
+                          <span className="w-1 h-1 bg-white/70 rounded-full animate-pulse"></span>
+                          <span className="w-1 h-1 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></span>
                         </div>
                       </div>
                     </div>
@@ -440,29 +446,29 @@ export default function App() {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-5 shrink-0">
-                  <div className="chat-bar relative flex items-center">
+                <div className="p-6 bg-transparent">
+                  <div className="relative flex items-center">
                     <input 
                       type="text" 
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Ask about passport, road tax, etc..."
-                      className="w-full bg-transparent rounded-full py-4 pl-5 pr-14 text-sm focus:outline-none text-[color:var(--on-surface)] placeholder:text-[color:var(--on-surface-variant)]"
+                      className="chat-input w-full rounded-full py-4 pl-5 pr-14 text-sm transition-all"
                     />
                     <button 
                       onClick={handleSendMessage}
                       disabled={!input.trim() || isTyping}
-                      className={`absolute right-2 p-2.5 rounded-full transition-all ${
+                      className={`absolute right-2 p-2 rounded-xl transition-all ${
                         !input.trim() || isTyping 
-                          ? 'text-[color:var(--on-surface-variant)] opacity-60' 
-                          : 'btn-primary text-[color:var(--on-primary)]'
+                            ? 'text-[color:rgba(79,93,99,0.5)]' 
+                          : 'btn-primary px-4 py-2 text-[0.8rem]'
                       }`}
                     >
-                      <Send size={18} />
+                      <Send size={20} />
                     </button>
                   </div>
-                  <p className="text-[10px] text-[color:var(--on-surface-variant)] mt-3 text-center">
+                  <p className="text-[10px] text-[var(--on-surface-variant)] mt-3 text-center">
                     AI can make mistakes. Verify important info on official portals.
                   </p>
                 </div>
@@ -475,7 +481,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="diplomat-screen p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
+                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-emerald-50 rounded-3xl flex items-center justify-center mb-8">
                   <ShieldCheck size={48} className="text-emerald-600" />
@@ -488,7 +494,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('passport_checker')}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 group"
+                    className="w-full btn-primary text-white py-4 px-6 rounded-full transition-all flex items-center justify-center gap-2 group"
                   >
                     Start Renewal Check
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -504,7 +510,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Eligibility Check</h2>
@@ -522,10 +528,10 @@ export default function App() {
                         <button
                           key={age}
                           onClick={() => setUserData({ ...userData, age })}
-                          className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`py-3 rounded-[0.75rem] transition-all text-sm font-medium ${
                             userData.age === age 
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {age === 12 ? '≤ 13' : age === 18 ? '14 - 59' : '60+'}
@@ -544,10 +550,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setUserData({ ...userData, hasPassport: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-[0.75rem] transition-all text-sm font-medium ${
                             userData.hasPassport === val 
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {val ? 'Yes' : 'No'}
@@ -566,10 +572,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setUserData({ ...userData, isDamagedOrLost: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-[0.75rem] transition-all text-sm font-medium ${
                             userData.isDamagedOrLost === val 
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {val ? 'Yes' : 'No'}
@@ -589,10 +595,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setUserData({ ...userData, isSpecialCategory: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-[0.75rem] transition-all text-sm font-medium ${
                             userData.isSpecialCategory === val 
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {val ? 'Yes' : 'No'}
@@ -605,7 +611,7 @@ export default function App() {
                 <button
                   disabled={userData.age === null || userData.hasPassport === null || userData.isDamagedOrLost === null || userData.isSpecialCategory === null}
                   onClick={() => setCurrentScreen('passport_guidance')}
-                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all mt-4"
+                  className="w-full btn-primary disabled:opacity-40 disabled:cursor-not-allowed text-white py-4 rounded-full transition-all mt-4"
                 >
                   View My Result
                 </button>
@@ -618,10 +624,10 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
-                <div className={`p-6 rounded-3xl ${eligibility.isEligibleOnline ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
+                <div className={`p-6 rounded-3xl ${eligibility.isEligibleOnline ? 'bg-[color:rgba(82,103,114,0.14)]' : 'bg-[color:rgba(132,55,0,0.12)]'}`}>
                   <div className="flex items-start gap-4">
                     {eligibility.isEligibleOnline ? (
                       <CheckCircle2 className="text-emerald-600 mt-1" size={24} />
@@ -715,7 +721,7 @@ export default function App() {
 
                 <button
                   onClick={() => setCurrentScreen('passport_checklist')}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
+                  className="w-full btn-primary text-white py-4 rounded-full transition-all flex items-center justify-center gap-2"
                 >
                   View Collection Checklist
                   <ChevronRight size={20} />
@@ -729,7 +735,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Collection Checklist</h2>
@@ -737,7 +743,7 @@ export default function App() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="p-6 border-2 border-slate-100 rounded-3xl space-y-4">
+                  <div className="p-6 bg-[var(--surface-container-lowest)] rounded-3xl space-y-4 shadow-[0_24px_24px_rgba(25,28,29,0.06)]">
                     <h3 className="font-bold text-slate-800 flex items-center gap-2">
                       <User size={18} className="text-emerald-600" /> 
                       {userData.age && userData.age >= 18 ? 'For Applicants 18+' : 'For Applicants Below 18'}
@@ -764,7 +770,7 @@ export default function App() {
                     </ul>
                   </div>
 
-                  <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
+                  <div className="bg-[color:rgba(82,103,114,0.14)] p-6 rounded-3xl">
                     <h4 className="font-bold text-emerald-900 mb-2">Final Reminder</h4>
                     <p className="text-sm text-emerald-800 leading-relaxed">
                       Collection must be done at the office you selected during the online application. Ensure your documents are original and in good condition.
@@ -777,7 +783,7 @@ export default function App() {
                     href="https://imigresen-online.imi.gov.my/eservices/myPasport"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
+                    className="w-full btn-primary text-white py-4 rounded-full transition-all flex items-center justify-center gap-2"
                   >
                     Go to Official Portal
                     <ExternalLink size={18} />
@@ -798,7 +804,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="diplomat-screen p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
+                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mb-8">
                   <Car size={48} className="text-blue-600" />
@@ -811,7 +817,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('roadtax_checker')}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
+                    className="w-full btn-primary text-white py-4 px-6 rounded-full transition-all flex items-center justify-center gap-2 group"
                   >
                     Check My Readiness
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -832,7 +838,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Renewal Readiness</h2>
@@ -850,10 +856,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setRoadTaxData({ ...roadTaxData, hasInsurance: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-[0.75rem] transition-all text-sm font-medium ${
                             roadTaxData.hasInsurance === val 
-                              ? 'border-blue-600 bg-blue-50 text-blue-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {val ? 'Yes' : 'No / Expired'}
@@ -872,10 +878,10 @@ export default function App() {
                         <button
                           key={val}
                           onClick={() => setRoadTaxData({ ...roadTaxData, isBlacklisted: val as any })}
-                          className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`py-3 rounded-[0.75rem] transition-all text-sm font-medium ${
                             roadTaxData.isBlacklisted === val 
-                              ? 'border-blue-600 bg-blue-50 text-blue-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {val === 'no' ? 'None' : val === 'yes' ? 'Yes' : 'Not Sure'}
@@ -895,10 +901,10 @@ export default function App() {
                         <button
                           key={val}
                           onClick={() => setRoadTaxData({ ...roadTaxData, needsInspection: val as any })}
-                          className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`py-3 rounded-[0.75rem] transition-all text-sm font-medium ${
                             roadTaxData.needsInspection === val 
-                              ? 'border-blue-600 bg-blue-50 text-blue-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {val === 'no' ? 'No' : val === 'yes' ? 'Yes' : 'Not Sure'}
@@ -917,10 +923,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setRoadTaxData({ ...roadTaxData, hasRequiredInfo: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-[0.75rem] transition-all text-sm font-medium ${
                             roadTaxData.hasRequiredInfo === val 
-                              ? 'border-blue-600 bg-blue-50 text-blue-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {val ? 'Yes' : 'No'}
@@ -933,7 +939,7 @@ export default function App() {
                 <button
                   disabled={roadTaxData.hasInsurance === null || roadTaxData.isBlacklisted === null || roadTaxData.needsInspection === null || roadTaxData.hasRequiredInfo === null}
                   onClick={() => setCurrentScreen('roadtax_result')}
-                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all mt-4"
+                  className="w-full btn-primary disabled:opacity-40 disabled:cursor-not-allowed text-white py-4 rounded-full transition-all mt-4"
                 >
                   Check Readiness
                 </button>
@@ -946,13 +952,13 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
-                  eligibility.status === 'ready' ? 'bg-emerald-50 border border-emerald-100' : 
-                  eligibility.status === 'blocked' ? 'bg-rose-50 border border-rose-100' : 
-                  'bg-amber-50 border border-amber-100'
+                  eligibility.status === 'ready' ? 'bg-[color:rgba(82,103,114,0.14)]' : 
+                  eligibility.status === 'blocked' ? 'bg-[color:rgba(186,26,26,0.12)]' : 
+                  'bg-[color:rgba(132,55,0,0.12)]'
                 }`}>
                   <div className="flex items-start gap-4">
                     {eligibility.status === 'ready' ? (
@@ -989,7 +995,7 @@ export default function App() {
                     <ChevronRight size={18} className="text-blue-600" /> 
                     What to do next
                   </h4>
-                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                  <div className="bg-[var(--surface-container-lowest)] p-6 rounded-3xl shadow-[0_24px_24px_rgba(25,28,29,0.06)]">
                     <p className="text-sm text-slate-700 leading-relaxed font-medium">
                       {eligibility.nextStep}
                     </p>
@@ -1001,11 +1007,11 @@ export default function App() {
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Recommended Channels</h4>
                     <div className="grid grid-cols-1 gap-3">
-                      <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-blue-500 transition-all">
+                      <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="p-4 bg-[var(--surface-container-lowest)] rounded-2xl flex items-center justify-between hover:bg-[var(--surface)] transition-all">
                         <span className="text-sm font-semibold">MyJPJ App / JPJ Portal</span>
                         <ExternalLink size={16} className="text-slate-400" />
                       </a>
-                      <a href="https://www.myeg.com.my" target="_blank" rel="noopener noreferrer" className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-blue-500 transition-all">
+                      <a href="https://www.myeg.com.my" target="_blank" rel="noopener noreferrer" className="p-4 bg-[var(--surface-container-lowest)] rounded-2xl flex items-center justify-between hover:bg-[var(--surface)] transition-all">
                         <span className="text-sm font-semibold">MyEG Online</span>
                         <ExternalLink size={16} className="text-slate-400" />
                       </a>
@@ -1017,7 +1023,7 @@ export default function App() {
                 {eligibility.status === 'blocked' && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Resolve Issues</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full btn-primary text-white py-4 rounded-full transition-all flex items-center justify-center gap-2">
                       Check JPJ Status
                       <ExternalLink size={18} />
                     </a>
@@ -1028,7 +1034,7 @@ export default function App() {
                 {eligibility.status === 'pending' && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Verify Your Status</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full btn-primary text-white py-4 rounded-full transition-all flex items-center justify-center gap-2">
                       Check JPJ Status
                       <ExternalLink size={18} />
                     </a>
@@ -1038,7 +1044,7 @@ export default function App() {
                 <div className="space-y-4 pt-4">
                   <button
                     onClick={() => setCurrentScreen('ai_assistant')}
-                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all"
+                    className="w-full btn-primary text-white py-4 rounded-full transition-all"
                   >
                     Back to AI Assistant
                   </button>
@@ -1058,7 +1064,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="diplomat-screen p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
+                className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
                 <div className="w-24 h-24 bg-purple-50 rounded-3xl flex items-center justify-center mb-8">
                   <IdCard size={48} className="text-purple-600" />
@@ -1071,7 +1077,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('license_checker')}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-purple-200 flex items-center justify-center gap-2 group"
+                    className="w-full btn-primary text-white py-4 px-6 rounded-full transition-all flex items-center justify-center gap-2 group"
                   >
                     Check My Eligibility
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -1092,7 +1098,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Licence Details</h2>
@@ -1115,10 +1121,10 @@ export default function App() {
                         <button
                           key={type.id}
                           onClick={() => setLicenseData({ ...licenseData, type: type.id as any })}
-                          className={`py-3 px-2 rounded-xl border-2 transition-all text-xs font-medium ${
+                          className={`py-3 px-2 rounded-[0.75rem] transition-all text-xs font-medium ${
                             licenseData.type === type.id 
-                              ? 'border-purple-600 bg-purple-50 text-purple-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {type.label}
@@ -1141,10 +1147,10 @@ export default function App() {
                         <button
                           key={status.id}
                           onClick={() => setLicenseData({ ...licenseData, expiryStatus: status.id as any })}
-                          className={`w-full py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium text-left ${
+                          className={`w-full py-3 px-4 rounded-[0.75rem] transition-all text-sm font-medium text-left ${
                             licenseData.expiryStatus === status.id 
-                              ? 'border-purple-600 bg-purple-50 text-purple-700' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                              : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                           }`}
                         >
                           {status.label}
@@ -1164,10 +1170,10 @@ export default function App() {
                           <button
                             key={year}
                             onClick={() => setLicenseData({ ...licenseData, renewalDuration: year })}
-                            className={`py-2 rounded-lg border-2 transition-all text-xs font-bold ${
+                            className={`py-2 rounded-[0.75rem] transition-all text-xs font-bold ${
                               licenseData.renewalDuration === year 
-                                ? 'border-purple-600 bg-purple-50 text-purple-700' 
-                                : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                                ? 'bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[0_8px_24px_rgba(25,28,29,0.08)]' 
+                                : 'bg-[var(--surface-container-lowest)] hover:bg-[var(--surface)] text-[var(--on-surface-variant)]'
                             }`}
                           >
                             {year}Y
@@ -1181,7 +1187,7 @@ export default function App() {
                 <button
                   disabled={licenseData.type === null || licenseData.expiryStatus === null || (licenseData.type === 'CDL' && licenseData.renewalDuration === null)}
                   onClick={() => setCurrentScreen('license_result')}
-                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all mt-4"
+                  className="w-full btn-primary disabled:opacity-40 disabled:cursor-not-allowed text-white py-4 rounded-full transition-all mt-4"
                 >
                   Check Eligibility
                 </button>
@@ -1194,13 +1200,13 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="diplomat-screen p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
-                  eligibility.status === 'ready' ? 'bg-emerald-50 border border-emerald-100' : 
-                  eligibility.status === 'blocked' ? 'bg-rose-50 border border-rose-100' : 
-                  'bg-amber-50 border border-amber-100'
+                  eligibility.status === 'ready' ? 'bg-[color:rgba(82,103,114,0.14)]' : 
+                  eligibility.status === 'blocked' ? 'bg-[color:rgba(186,26,26,0.12)]' : 
+                  'bg-[color:rgba(132,55,0,0.12)]'
                 }`}>
                   <div className="flex items-start gap-4">
                     {eligibility.status === 'ready' ? (
@@ -1262,7 +1268,7 @@ export default function App() {
                     <ChevronRight size={18} className="text-purple-600" /> 
                     What to do next
                   </h4>
-                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                  <div className="bg-[var(--surface-container-lowest)] p-6 rounded-3xl shadow-[0_24px_24px_rgba(25,28,29,0.06)]">
                     <p className="text-sm text-slate-700 leading-relaxed font-medium">
                       {eligibility.nextStep}
                     </p>
@@ -1271,7 +1277,7 @@ export default function App() {
 
                 {/* Digital Awareness */}
                 {eligibility.status === 'ready' && (
-                  <div className="bg-purple-50 p-6 rounded-3xl border border-purple-100 flex gap-4">
+                  <div className="bg-[color:rgba(0,54,112,0.1)] p-6 rounded-3xl flex gap-4">
                     <Info className="text-purple-600 shrink-0" size={20} />
                     <div>
                       <h5 className="font-bold text-purple-900 text-sm">Digital Licence Awareness</h5>
@@ -1287,11 +1293,11 @@ export default function App() {
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Recommended Channels</h4>
                     <div className="grid grid-cols-1 gap-3">
-                      <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-purple-500 transition-all">
+                      <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="p-4 bg-[var(--surface-container-lowest)] rounded-2xl flex items-center justify-between hover:bg-[var(--surface)] transition-all">
                         <span className="text-sm font-semibold">MyJPJ App / JPJ Portal</span>
                         <ExternalLink size={16} className="text-slate-400" />
                       </a>
-                      <a href="https://www.myeg.com.my" target="_blank" rel="noopener noreferrer" className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-purple-500 transition-all">
+                      <a href="https://www.myeg.com.my" target="_blank" rel="noopener noreferrer" className="p-4 bg-[var(--surface-container-lowest)] rounded-2xl flex items-center justify-between hover:bg-[var(--surface)] transition-all">
                         <span className="text-sm font-semibold">MyEG Online</span>
                         <ExternalLink size={16} className="text-slate-400" />
                       </a>
@@ -1303,7 +1309,7 @@ export default function App() {
                 {(eligibility.status === 'blocked' || eligibility.status === 'pending') && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Verify on Official Portal</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full btn-primary text-white py-4 rounded-full transition-all flex items-center justify-center gap-2">
                       Go to JPJ Portal
                       <ExternalLink size={18} />
                     </a>
@@ -1313,7 +1319,7 @@ export default function App() {
                 <div className="space-y-4 pt-4">
                   <button
                     onClick={() => setCurrentScreen('ai_assistant')}
-                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all"
+                    className="w-full btn-primary text-white py-4 rounded-full transition-all"
                   >
                     Back to AI Assistant
                   </button>
@@ -1330,7 +1336,7 @@ export default function App() {
         </main>
 
         {/* Bottom Navigation Bar */}
-        <nav className="diplomat-glass px-2 py-2 flex justify-around items-center shrink-0 z-20">
+        <nav className="glass-nav px-2 py-2 flex justify-around items-center shrink-0 z-20">
           {[
             { id: 'ai', label: 'AI Assistant', icon: Sparkles, screen: 'ai_assistant' as Screen },
             { id: 'passport', label: 'Passport', icon: ShieldCheck, screen: 'passport_landing' as Screen, service: 'passport' as Service },
@@ -1349,8 +1355,8 @@ export default function App() {
                   setCurrentScreen(item.screen);
                   if (item.service) setActiveService(item.service);
                 }}
-                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-full transition-all relative ${
-                  active ? 'text-[color:var(--primary)]' : 'text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]'
+                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all relative ${
+                  active ? 'text-[var(--primary)]' : 'text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]'
                 }`}
               >
                 <Icon size={20} className={active ? 'scale-110' : ''} />
@@ -1358,7 +1364,7 @@ export default function App() {
                 {active && (
                   <motion.div 
                     layoutId="activeTab"
-                    className="absolute -bottom-1 w-1 h-1 bg-[color:var(--primary)] rounded-full"
+                    className="absolute -bottom-1 w-1 h-1 bg-[var(--primary)] rounded-full"
                   />
                 )}
               </button>
@@ -1370,15 +1376,37 @@ export default function App() {
   );
 }
 
+function ServiceCard({ icon, title, desc, onClick, className = "" }: { icon: React.ReactNode, title: string, desc: string, onClick: () => void, className?: string }) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`p-5 bg-[var(--surface-container-lowest)] rounded-[0.75rem] text-left hover:shadow-[0_24px_24px_rgba(25,28,29,0.06)] transition-all group ${className}`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-[var(--surface-container-highest)] rounded-[0.75rem] flex items-center justify-center transition-colors">
+            {icon}
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-[var(--on-surface)]">{title}</h3>
+            <p className="text-xs text-[var(--on-surface-variant)]">{desc}</p>
+          </div>
+        </div>
+        <ChevronRight size={20} className="text-[var(--on-surface-variant)] group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
+      </div>
+    </button>
+  );
+}
+
 function Step({ number, title, desc }: { number: number, title: string, desc: string }) {
   return (
     <div className="flex gap-4 relative z-10">
-      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 font-bold text-[color:var(--primary)] text-sm shadow-sm">
+      <div className="w-8 h-8 rounded-full bg-[var(--surface-container-lowest)] shadow-[0_10px_20px_rgba(25,28,29,0.08)] flex items-center justify-center shrink-0 font-bold text-[var(--primary)] text-sm">
         {number}
       </div>
       <div>
-        <h5 className="font-bold text-slate-800 text-sm">{title}</h5>
-        <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
+        <h5 className="font-display font-bold text-[var(--on-surface)] text-sm">{title}</h5>
+        <p className="text-xs text-[var(--on-surface-variant)] mt-0.5">{desc}</p>
       </div>
     </div>
   );
@@ -1386,9 +1414,9 @@ function Step({ number, title, desc }: { number: number, title: string, desc: st
 
 function CheckItem({ text }: { text: string }) {
   return (
-    <li className="flex items-center gap-3 text-sm text-[color:var(--on-surface)]">
-      <div className="w-5 h-5 rounded-md bg-[color:var(--surface-container-highest)] flex items-center justify-center shrink-0">
-        <CheckCircle2 size={14} className="text-[color:var(--on-secondary-container)]" />
+    <li className="flex items-center gap-3 text-sm text-[var(--on-surface)]">
+      <div className="w-5 h-5 rounded-md bg-[color:rgba(82,103,114,0.18)] flex items-center justify-center shrink-0">
+        <CheckCircle2 size={14} className="text-[var(--ready)]" />
       </div>
       {text}
     </li>
