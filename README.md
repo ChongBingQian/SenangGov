@@ -185,6 +185,14 @@ npm run build
 npm run deploy
 ```
 
+For versioned Worker uploads (for CI/CD commands like `wrangler versions upload`), use:
+
+```bash
+npm run deploy:version
+```
+
+This uses `wrangler.jsonc`, which explicitly defines `main`, `assets.directory`, and the `AI` binding.
+
 Dry run:
 
 ```bash
@@ -219,6 +227,7 @@ From `package.json`:
 - `npm run build` - build frontend
 - `npm run preview` - preview built app
 - `npm run deploy` - deploy with Wrangler
+- `npm run deploy:version` - upload a Worker version using `wrangler.jsonc`
 - `npm run deploy:dry` - Wrangler dry run
 - `npm run pages:dev` - serve `dist` with Pages dev
 - `npm run deploy:pages` - deploy `dist` to Pages project `senanggov`

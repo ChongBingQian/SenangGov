@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "wrangler deploy",
+    "deploy:version": "npx wrangler versions upload --config wrangler.jsonc",
     "deploy:dry": "wrangler deploy --dry-run",
     "pages:dev": "wrangler pages dev dist",
     "deploy:pages": "wrangler pages deploy dist --project-name=senanggov",
