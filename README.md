@@ -13,9 +13,7 @@ It provides a chat-first UI and a single backend API route: `POST /api/ai`.
 - Guided eligibility checks with clear status outcomes (`ready`, `blocked`, `pending`)
 - Rule-based flows for passport, road tax, and licence scenarios
 - Retrieval-augmented prompts (RAG) for more accurate assistant answers
-- Multi-provider AI support:
-	- Gemini (preferred when key is present)
-	- Cloudflare AI (fallback in Worker runtime)
+- Cloudflare Workers AI only (Worker binding or Cloudflare REST API)
 
 ## Stack
 
@@ -29,18 +27,17 @@ It provides a chat-first UI and a single backend API route: `POST /api/ai`.
 
 ## Provider Behavior
 
-`/api/ai` supports both Gemini and Cloudflare, depending on runtime and env config.
+`/api/ai` uses Cloudflare Workers AI only.
 
 Cloud Run (`server.js`):
 
-- Uses Gemini only
-- Requires any one of: `AI_ASSISTANT`, `AI_assistant`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENAI_API_KEY`
+- Uses Cloudflare REST API
+- Requires both: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
 
 Cloudflare Worker (`worker.js` and `functions/api/ai.js`):
 
-1. Tries Gemini if any supported Gemini key variable exists
-2. Falls back to Cloudflare AI binding (`env.AI.run`)
-3. Falls back to Cloudflare REST API (`CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`)
+1. Uses AI binding (`env.AI.run`) when available
+2. Falls back to Cloudflare REST API (`CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`)
 
 ## Quick Start
 
@@ -83,17 +80,9 @@ npm run lint
 
 Main AI variables:
 
-- `AI_ASSISTANT` (recommended Gemini API key name)
-- `AI_assistant` (preferred Gemini API key name)
-- `GEMINI_API_KEY` (backward-compatible alternative)
-- `GOOGLE_API_KEY` (common Google AI key variable)
-- `GOOGLE_GENAI_API_KEY` (Google GenAI SDK-style variable)
-- `GEMINI_MODEL` (optional, default: `gemini-2.0-flash`)
-
-Cloudflare fallback variables:
-
-- `CLOUDFLARE_API_TOKEN` (if not using binding)
-- `CLOUDFLARE_ACCOUNT_ID` (if not using binding)
+- `CLOUDFLARE_API_TOKEN` (required for REST API mode)
+- `CLOUDFLARE_ACCOUNT_ID` (required for REST API mode)
+- `CLOUDFLARE_MODEL` (optional, default: `@cf/meta/llama-3-8b-instruct`)
 
 Optional app variable:
 
@@ -134,13 +123,13 @@ gcloud run deploy senanggov \
 	--source . \
 	--region asia-southeast1 \
 	--allow-unauthenticated \
-	--set-env-vars AI_ASSISTANT=YOUR_GEMINI_API_KEY
+	--set-env-vars CLOUDFLARE_API_TOKEN=YOUR_CF_TOKEN,CLOUDFLARE_ACCOUNT_ID=YOUR_CF_ACCOUNT_ID
 ```
 
 Windows PowerShell equivalent (use one line or PowerShell backticks, not `\` line continuations):
 
 ```powershell
-gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars AI_ASSISTANT=YOUR_GEMINI_API_KEY
+gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars CLOUDFLARE_API_TOKEN=YOUR_CF_TOKEN,CLOUDFLARE_ACCOUNT_ID=YOUR_CF_ACCOUNT_ID
 ```
 
 If PowerShell shows `gcloud` is not recognized, ensure Cloud SDK is installed and available in PATH, for example:
@@ -150,26 +139,20 @@ $env:Path += ";$env:ProgramFiles\Google\Cloud SDK\google-cloud-sdk\bin"
 gcloud --version
 ```
 
-Any one of these variable names is accepted by the app runtime: `AI_ASSISTANT`, `AI_assistant`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENAI_API_KEY`.
+Both `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are required by the Cloud Run runtime.
 
 Quick verification after deploy:
 
 - `GET /healthz` should return `{ "ok": true }`
-- `GET /api/ai/status` should return `aiConfigured: true` and a non-null `keySource`
+- `GET /api/ai/status` should return `aiConfigured: true` and `provider: "cloudflare-workers-ai-rest"`
 
 ### Cloudflare Workers / Pages
-
-Set Gemini key as a Wrangler secret:
-
-```bash
-npx wrangler secret put AI_assistant
-```
 
 Optional model variable in Wrangler config:
 
 ```toml
 [vars]
-GEMINI_MODEL = "gemini-2.0-flash"
+CLOUDFLARE_MODEL = "@cf/meta/llama-3-8b-instruct"
 ```
 
 Deploy Worker:

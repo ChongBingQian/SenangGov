@@ -1,83 +1,25 @@
 import { buildRagInstruction, retrieveKnowledgeContext } from './functions/api/rag.js';
 
-const CLOUDFLARE_MODEL = '@cf/meta/llama-3-8b-instruct';
-const GEMINI_DEFAULT_MODEL = 'gemini-2.0-flash';
-
-async function runGeminiModel(env, messages) {
-  const apiKey = env?.AI_ASSISTANT || env?.AI_assistant || env?.GEMINI_API_KEY || env?.GOOGLE_API_KEY || env?.GOOGLE_GENAI_API_KEY;
-  if (!apiKey) {
-    return null;
-  }
-
-  const model = env?.GEMINI_MODEL || GEMINI_DEFAULT_MODEL;
-  const systemMessages = messages.filter((msg) => msg?.role === 'system' && typeof msg?.content === 'string');
-  const chatMessages = messages.filter((msg) => (msg?.role === 'user' || msg?.role === 'assistant') && typeof msg?.content === 'string');
-
-  const systemInstructionText = systemMessages.map((msg) => msg.content).join('\n\n').trim();
-  const contents = chatMessages.map((msg) => ({
-    role: msg.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: msg.content }],
-  }));
-
-  if (contents.length === 0) {
-    contents.push({ role: 'user', parts: [{ text: 'Hello' }] });
-  }
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...(systemInstructionText
-          ? {
-              systemInstruction: {
-                parts: [{ text: systemInstructionText }],
-              },
-            }
-          : {}),
-        contents,
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(`Gemini API error (${response.status}): ${details.slice(0, 300)}`);
-  }
-
-  const data = await response.json();
-  const text = (data?.candidates || [])
-    .flatMap((candidate) => candidate?.content?.parts || [])
-    .map((part) => part?.text || '')
-    .join('')
-    .trim();
-
-  return {
-    response: text,
-  };
-}
+const DEFAULT_CLOUDFLARE_MODEL = '@cf/meta/llama-3-8b-instruct';
 
 async function runAiModel(env, messages) {
-  const geminiResponse = await runGeminiModel(env, messages);
-  if (geminiResponse) {
-    return geminiResponse;
-  }
+  const model = env?.CLOUDFLARE_MODEL || DEFAULT_CLOUDFLARE_MODEL;
 
   if (env?.AI?.run) {
-    return env.AI.run(CLOUDFLARE_MODEL, { messages });
+    const response = await env.AI.run(model, { messages });
+    return {
+      response: response?.response || response?.result?.response || '',
+    };
   }
 
   const token = env?.CLOUDFLARE_API_TOKEN;
   const accountId = env?.CLOUDFLARE_ACCOUNT_ID;
 
   if (!token || !accountId) {
-    throw new Error('AI is not configured. Set AI_ASSISTANT, AI_assistant, GEMINI_API_KEY, GOOGLE_API_KEY, or GOOGLE_GENAI_API_KEY, or add Cloudflare AI binding/token.');
+    throw new Error('Cloudflare Workers AI is not configured. Add AI binding or set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.');
   }
 
-  const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${CLOUDFLARE_MODEL}`, {
+  const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,

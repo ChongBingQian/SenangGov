@@ -6,7 +6,7 @@ import { buildRagInstruction, retrieveKnowledgeContext } from './functions/api/r
 
 const app = express();
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const MODEL = process.env.CLOUDFLARE_MODEL || '@cf/meta/llama-3-8b-instruct';
 const PORT = Number(process.env.PORT || 8080);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,63 +17,34 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(distDir));
 
 async function runAiModel(messages) {
-  const apiKey =
-    process.env.AI_ASSISTANT ||
-    process.env.AI_assistant ||
-    process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.GOOGLE_GENAI_API_KEY;
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 
-  if (!apiKey) {
+  if (!token || !accountId) {
     throw new Error(
-      'Gemini is not configured. Set AI_ASSISTANT, AI_assistant, GEMINI_API_KEY, GOOGLE_API_KEY, or GOOGLE_GENAI_API_KEY.'
+      'Cloudflare Workers AI is not configured. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.'
     );
   }
 
-  const systemMessages = messages.filter((msg) => msg?.role === 'system' && typeof msg?.content === 'string');
-  const chatMessages = messages.filter((msg) => (msg?.role === 'user' || msg?.role === 'assistant') && typeof msg?.content === 'string');
-
-  const systemInstructionText = systemMessages.map((msg) => msg.content).join('\n\n').trim();
-  const contents = chatMessages.map((msg) => ({
-    role: msg.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: msg.content }],
-  }));
-
-  if (contents.length === 0) {
-    contents.push({ role: 'user', parts: [{ text: 'Hello' }] });
-  }
-
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
+    `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${MODEL}`,
     {
       method: 'POST',
       headers: {
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        ...(systemInstructionText
-          ? {
-              systemInstruction: {
-                parts: [{ text: systemInstructionText }],
-              },
-            }
-          : {}),
-        contents,
-      }),
+      body: JSON.stringify({ messages }),
     }
   );
 
   if (!response.ok) {
     const details = await response.text();
-    throw new Error(`Gemini API error (${response.status}): ${details.slice(0, 300)}`);
+    throw new Error(`Cloudflare Workers AI API error (${response.status}): ${details.slice(0, 300)}`);
   }
 
   const data = await response.json();
-  const text = (data?.candidates || [])
-    .flatMap((candidate) => candidate?.content?.parts || [])
-    .map((part) => part?.text || '')
-    .join('')
-    .trim();
+  const text = data?.result?.response || data?.response || '';
 
   return {
     response: text,
@@ -85,18 +56,14 @@ app.get('/healthz', (_req, res) => {
 });
 
 app.get('/api/ai/status', (_req, res) => {
-  const keySource =
-    (process.env.AI_ASSISTANT && 'AI_ASSISTANT') ||
-    (process.env.AI_assistant && 'AI_assistant') ||
-    (process.env.GEMINI_API_KEY && 'GEMINI_API_KEY') ||
-    (process.env.GOOGLE_API_KEY && 'GOOGLE_API_KEY') ||
-    (process.env.GOOGLE_GENAI_API_KEY && 'GOOGLE_GENAI_API_KEY') ||
-    null;
+  const tokenConfigured = Boolean(process.env.CLOUDFLARE_API_TOKEN);
+  const accountConfigured = Boolean(process.env.CLOUDFLARE_ACCOUNT_ID);
+  const aiConfigured = tokenConfigured && accountConfigured;
 
   res.status(200).json({
     ok: true,
-    aiConfigured: Boolean(keySource),
-    keySource,
+    aiConfigured,
+    provider: aiConfigured ? 'cloudflare-workers-ai-rest' : null,
     model: MODEL,
   });
 });
@@ -133,7 +100,7 @@ app.post('/api/ai', async (req, res) => {
   } catch (err) {
     res.status(500).json({
       error: err?.message || 'Unknown error',
-      text: 'Error connecting to Gemini API.',
+      text: 'Error connecting to Cloudflare Workers AI.',
     });
   }
 });
