@@ -1,151 +1,61 @@
 # SenangGov
 
-A React + Vite assistant that helps Malaysian users check renewal eligibility and next steps for:
+SenangGov is a React + Vite web assistant for Malaysian renewal workflows:
 
 - Passport renewal
 - Road tax renewal
 - Driving licence renewal
 
-The app includes a chat-first UI and a Gemini-backed `/api/ai` endpoint.
+It provides a chat-first UI and a single backend API route: `POST /api/ai`.
 
-## Tech Stack
+## Features
 
-- Visual Studio Code
-- GPT-5.3 Codex
+- Guided eligibility checks with clear status outcomes (`ready`, `blocked`, `pending`)
+- Rule-based flows for passport, road tax, and licence scenarios
+- Retrieval-augmented prompts (RAG) for more accurate assistant answers
+- Multi-provider AI support:
+	- Gemini (preferred when key is present)
+	- Cloudflare AI (fallback in Worker runtime)
+
+## Stack
+
 - React 19 + TypeScript
 - Vite 6
 - Tailwind CSS 4
-- Motion (`motion/react`) for transitions
-- Lucide icons
-- Google Cloud Run
-- Google Gemini API
+- Motion (`motion/react`)
+- Lucide React icons
+- Express (Cloud Run runtime)
+- Cloudflare Workers / Pages Functions (Worker runtime)
 
-## What The App Does
+## Provider Behavior
 
-The main UI is in `src/App.tsx`.
+`/api/ai` supports both Gemini and Cloudflare, depending on runtime and env config.
 
-### 1) AI Assistant (default screen)
+Cloud Run (`server.js`):
 
-- Opens on `ai_assistant` screen
-- Sends conversation history to `POST /api/ai`
-- Shows typing indicators, message timestamps, and sent/read status
-- Uses a strict system instruction to keep responses short and ask one question at a time
+- Uses Gemini only
+- Requires `AI_assistant` or `GEMINI_API_KEY`
 
-### 2) Passport flow
+Cloudflare Worker (`worker.js` and `functions/api/ai.js`):
 
-Screens:
+1. Tries Gemini if `AI_assistant` or `GEMINI_API_KEY` exists
+2. Falls back to Cloudflare AI binding (`env.AI.run`)
+3. Falls back to Cloudflare REST API (`CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`)
 
-- `passport_landing`
-- `passport_checker`
-- `passport_guidance`
-- `passport_checklist`
-
-Eligibility logic checks:
-
-- Age (`<=13` must go counter)
-- Existing passport required
-- Lost/damaged passport requires counter
-- Special categories (OKU, overseas students, hajj pilgrims) require counter
-
-Fee logic:
-
-- RM100 for age 60+
-- RM200 otherwise
-
-### 3) Road tax flow
-
-Screens:
-
-- `roadtax_landing`
-- `roadtax_checker`
-- `roadtax_result`
-
-Eligibility status:
-
-- `ready`, `blocked`, or `pending`
-
-Checks include:
-
-- Insurance validity
-- JPJ/PDRM blacklist status
-- PUSPAKOM inspection need
-- Required vehicle/IC details
-
-### 4) Driving licence flow
-
-Screens:
-
-- `license_landing`
-- `license_checker`
-- `license_result`
-
-Rules implemented:
-
-- `LDL`: blocked
-- `PDL`: blocked (needs counter conversion to CDL)
-- `Vocational`: not online-ready in app, with annual renewal guidance
-- `CDL` + valid / expired under 3 years: ready for online renewal
-- Expired over 3 years: blocked
-
-Fee logic:
-
-- CDL: RM30 x selected years
-- PDL: RM60
-- LDL: RM20
-- Vocational: RM20
-
-## API Layer
-
-The frontend calls `POST /api/ai`.
-
-Cloud Run server implementation:
-
-1. `server.js` (Node + Express)
-
-Handler behavior:
-
-- Accept JSON payload with `messages` and optional `systemInstruction`
-- Retrieve relevant snippets from `functions/api/rag.js` and inject them as system context
-- Normalize message roles (`user`, `assistant`, optional `system`)
-- Call Google Gemini model (`gemini-2.0-flash` by default)
-- Return `{ "text": "...", "sources": ["..."] }` (sources may be empty)
-
-## Project Structure
-
-```text
-.
-|-- src/
-|   |-- App.tsx
-|   |-- main.tsx
-|   |-- index.css
-|   `-- types.ts
-|-- functions/
-|   `-- api/
-|       `-- ai.js
-|-- server.js
-|-- Dockerfile
-|-- vite.config.ts
-|-- tsconfig.json
-|-- index.html
-`-- metadata.json
-```
-
-Note: there is a deeply nested `functions/functions/...` folder chain with no files currently used by the app runtime.
-
-## Local Development
+## Quick Start
 
 Prerequisites:
 
 - Node.js 18+
 - npm
 
-Install:
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Run Vite dev server:
+Run frontend dev server:
 
 ```bash
 npm run dev
@@ -157,66 +67,64 @@ Build production assets:
 npm run build
 ```
 
-Preview build locally:
+Preview built app:
 
 ```bash
 npm run preview
 ```
 
-Type-check:
+Type check:
 
 ```bash
 npm run lint
 ```
 
-## Google Cloud Run Deployment
+## Environment Variables
 
-This repo now includes a Cloud Run runtime:
+Main AI variables:
 
-- `server.js` (Node + Express) serves `dist` and handles `POST /api/ai`
-- `Dockerfile` builds the Vite app and runs the Node server on port `8080`
-
-Cloud Run uses Gemini directly for AI responses.
-
-### Required environment variables
-
-- `AI_assistant` (preferred)
+- `AI_assistant` (preferred Gemini API key name)
 - `GEMINI_API_KEY` (backward-compatible alternative)
-- Optional: `GEMINI_MODEL` (defaults to `gemini-2.0-flash`)
+- `GEMINI_MODEL` (optional, default: `gemini-2.0-flash`)
 
-### Gemini key setup (all runtimes)
+Cloudflare fallback variables:
 
-Cloud Run (local or deployed):
+- `CLOUDFLARE_API_TOKEN` (if not using binding)
+- `CLOUDFLARE_ACCOUNT_ID` (if not using binding)
 
-- Set `AI_assistant` in environment variables.
-- Optional: set `GEMINI_MODEL` if you want a different model.
+Optional app variable:
 
-Cloudflare Worker / Pages Functions (`wrangler` flows):
+- `APP_URL`
 
-1. Set the Gemini key as a secret:
+## Local Runtime Options
+
+### Option A: Express server (Cloud Run style)
 
 ```bash
-npx wrangler secret put AI_assistant
+npm run build
+npm run start
 ```
 
-2. (Optional) set a model var in `wrangler.toml` or `wrangler.jsonc`:
+This serves `dist` and handles `POST /api/ai` through `server.js`.
 
-```toml
-[vars]
-GEMINI_MODEL = "gemini-2.0-flash"
+### Option B: Cloudflare Pages-style local dev
+
+```bash
+npm run build
+npm run pages:dev
 ```
 
-When `AI_assistant` (or `GEMINI_API_KEY`) is present, `/api/ai` uses Gemini first. If missing, it falls back to existing Cloudflare AI bindings/token config.
+## Deployment
 
-### Deploy with gcloud
+### Google Cloud Run
 
-1. Enable required services:
+1. Enable services:
 
 ```bash
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 ```
 
-2. Deploy from source (builds with the included `Dockerfile`):
+2. Deploy:
 
 ```bash
 gcloud run deploy senanggov \
@@ -226,22 +134,32 @@ gcloud run deploy senanggov \
 	--set-env-vars AI_assistant=YOUR_GEMINI_API_KEY
 ```
 
-3. Open the service URL returned by Cloud Run.
+### Cloudflare Workers / Pages
 
-### Local Cloud Run-like test
+Set Gemini key as a Wrangler secret:
 
 ```bash
-npm run build
-npm run start
+npx wrangler secret put AI_assistant
 ```
 
-For versioned Worker uploads (for CI/CD commands like `wrangler versions upload`), use:
+Optional model variable in Wrangler config:
+
+```toml
+[vars]
+GEMINI_MODEL = "gemini-2.0-flash"
+```
+
+Deploy Worker:
+
+```bash
+npm run deploy
+```
+
+Version upload (uses `wrangler.jsonc`):
 
 ```bash
 npm run deploy:version
 ```
-
-This uses `wrangler.jsonc`, which explicitly defines `main`, `assets.directory`, and the `AI` binding.
 
 Dry run:
 
@@ -249,42 +167,32 @@ Dry run:
 npm run deploy:dry
 ```
 
-### Pages-style local test command
-
-A Pages dev script also exists:
+Deploy static build to Pages:
 
 ```bash
-npm run pages:dev
+npm run deploy:pages
 ```
 
-This can be useful if you want to test with Cloudflare Pages-style routing.
-## Environment Notes
+## Scripts
 
-- `.env.example` includes an optional `APP_URL` placeholder.
-- Runtime AI on Cloud Run uses Gemini API via `AI_assistant` (or `GEMINI_API_KEY`).
-
-## NPM Scripts
-
-From `package.json`:
-
-- `npm run dev` - start Vite on port 3000
-- `npm run build` - build frontend
-- `npm run start` - run Cloud Run server (`server.js`) on `PORT` or `8080`
-- `npm run preview` - preview built app
-- `npm run deploy` - deploy with Wrangler
-- `npm run deploy:version` - upload a Worker version using `wrangler.jsonc`
+- `npm run dev` - Vite dev server on port 3000
+- `npm run build` - build frontend assets
+- `npm run start` - run Express server (`server.js`)
+- `npm run preview` - preview Vite build
+- `npm run lint` - TypeScript check (`tsc --noEmit`)
+- `npm run deploy` - Wrangler deploy
+- `npm run deploy:version` - Wrangler version upload with `wrangler.jsonc`
 - `npm run deploy:dry` - Wrangler dry run
-- `npm run pages:dev` - serve `dist` with Pages dev
+- `npm run pages:dev` - local Pages dev for `dist`
 - `npm run deploy:pages` - deploy `dist` to Pages project `senanggov`
-- `npm run clean` - remove `dist`
-- `npm run lint` - TypeScript no-emit check
+- `npm run clean` - remove `dist` (Unix-style command)
 
-## Official Portals Linked In UI
+## Official Portals Referenced
 
-- Immigration: https://imigresen-online.imi.gov.my/eservices/myPasport
-- JPJ/MyJPJ: https://www.jpj.gov.my/myjpj/
+- Immigration (myPasport): https://imigresen-online.imi.gov.my/eservices/myPasport
+- JPJ / MyJPJ: https://www.jpj.gov.my/myjpj/
 - MyEG: https://www.myeg.com.my
 
 ## License
 
-Apache-2.0 (based on source header in `src/App.tsx`).
+Apache-2.0.
