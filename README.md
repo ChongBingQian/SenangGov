@@ -180,8 +180,33 @@ Cloud Run uses Gemini directly for AI responses.
 
 ### Required environment variables
 
-- `GEMINI_API_KEY`
+- `AI_assistant` (preferred)
+- `GEMINI_API_KEY` (backward-compatible alternative)
 - Optional: `GEMINI_MODEL` (defaults to `gemini-2.0-flash`)
+
+### Gemini key setup (all runtimes)
+
+Cloud Run (local or deployed):
+
+- Set `AI_assistant` in environment variables.
+- Optional: set `GEMINI_MODEL` if you want a different model.
+
+Cloudflare Worker / Pages Functions (`wrangler` flows):
+
+1. Set the Gemini key as a secret:
+
+```bash
+npx wrangler secret put AI_assistant
+```
+
+2. (Optional) set a model var in `wrangler.toml` or `wrangler.jsonc`:
+
+```toml
+[vars]
+GEMINI_MODEL = "gemini-2.0-flash"
+```
+
+When `AI_assistant` (or `GEMINI_API_KEY`) is present, `/api/ai` uses Gemini first. If missing, it falls back to existing Cloudflare AI bindings/token config.
 
 ### Deploy with gcloud
 
@@ -198,7 +223,7 @@ gcloud run deploy senanggov \
 	--source . \
 	--region asia-southeast1 \
 	--allow-unauthenticated \
-	--set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+	--set-env-vars AI_assistant=YOUR_GEMINI_API_KEY
 ```
 
 3. Open the service URL returned by Cloud Run.
@@ -236,7 +261,7 @@ This can be useful if you want to test with Cloudflare Pages-style routing.
 ## Environment Notes
 
 - `.env.example` includes an optional `APP_URL` placeholder.
-- Runtime AI on Cloud Run uses Gemini API via `GEMINI_API_KEY`.
+- Runtime AI on Cloud Run uses Gemini API via `AI_assistant` (or `GEMINI_API_KEY`).
 
 ## NPM Scripts
 

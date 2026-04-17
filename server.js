@@ -16,10 +16,10 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(distDir));
 
 async function runAiModel(messages) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.AI_assistant || process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    throw new Error('Gemini is not configured. Set GEMINI_API_KEY.');
+    throw new Error('Gemini is not configured. Set AI_assistant (or GEMINI_API_KEY).');
   }
 
   const systemMessages = messages.filter((msg) => msg?.role === 'system' && typeof msg?.content === 'string');
