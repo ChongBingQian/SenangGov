@@ -112,7 +112,16 @@ export default function App() {
         })
       });
 
-      if (!response.ok) throw new Error('Network response was not ok');
+      if (!response.ok) {
+        let details = 'Unable to process AI request.';
+        try {
+          const errData = await response.json();
+          details = errData?.error || errData?.text || details;
+        } catch {
+          // Keep default details if response is not JSON.
+        }
+        throw new Error(details);
+      }
       const data = await response.json();
 
       const assistantMessage = { 
@@ -125,9 +134,10 @@ export default function App() {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error("AI Error:", error);
+      const message = error instanceof Error ? error.message : "Sorry, I'm having trouble connecting right now. Please try again later.";
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "Sorry, I'm having trouble connecting right now. Please try again later.",
+        content: message,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'read'
       }]);

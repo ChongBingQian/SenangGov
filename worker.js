@@ -4,7 +4,7 @@ const CLOUDFLARE_MODEL = '@cf/meta/llama-3-8b-instruct';
 const GEMINI_DEFAULT_MODEL = 'gemini-2.0-flash';
 
 async function runGeminiModel(env, messages) {
-  const apiKey = env?.AI_assistant || env?.GEMINI_API_KEY;
+  const apiKey = env?.AI_assistant || env?.GEMINI_API_KEY || env?.GOOGLE_API_KEY || env?.GOOGLE_GENAI_API_KEY;
   if (!apiKey) {
     return null;
   }

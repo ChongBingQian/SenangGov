@@ -85,6 +85,8 @@ Main AI variables:
 
 - `AI_assistant` (preferred Gemini API key name)
 - `GEMINI_API_KEY` (backward-compatible alternative)
+- `GOOGLE_API_KEY` (common Google AI key variable)
+- `GOOGLE_GENAI_API_KEY` (Google GenAI SDK-style variable)
 - `GEMINI_MODEL` (optional, default: `gemini-2.0-flash`)
 
 Cloudflare fallback variables:
@@ -131,8 +133,10 @@ gcloud run deploy senanggov \
 	--source . \
 	--region asia-southeast1 \
 	--allow-unauthenticated \
-	--set-env-vars AI_assistant=YOUR_GEMINI_API_KEY
+	--set-env-vars GOOGLE_API_KEY=YOUR_GEMINI_API_KEY
 ```
+
+Any one of these variable names is accepted by the app runtime: `AI_assistant`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENAI_API_KEY`.
 
 ### Cloudflare Workers / Pages
 
