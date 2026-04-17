@@ -308,15 +308,15 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-100 overflow-hidden">
-      <div className="max-w-md mx-auto h-full flex flex-col shadow-xl bg-white relative overflow-hidden">
+    <div className="gov-app h-screen bg-[var(--surface)] text-[var(--on-surface)] font-body selection:bg-blue-100 overflow-hidden px-2 py-2 sm:px-5 sm:py-6">
+      <div className="max-w-md mx-auto h-full flex flex-col ambient-float bg-[var(--surface-container-low)] relative overflow-hidden rounded-[2rem]">
         
         {/* Header */}
         {currentScreen !== 'ai_assistant' && (
-          <header className="px-6 py-4 flex items-center justify-start border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
+          <header className="px-6 py-4 flex items-center justify-start glass-top sticky top-0 z-10 shrink-0">
             <button 
               onClick={handleBack}
-              className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+              className="p-2 hover:bg-[var(--surface-container-highest)] rounded-full transition-colors"
             >
               <ArrowLeft size={20} />
             </button>
@@ -331,47 +331,52 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="flex flex-col h-full bg-slate-50"
+                className="flex flex-col h-full bg-[var(--surface-container-low)]"
               >
                 {/* Chat Header */}
-                <div className="p-6 bg-white border-b border-slate-100 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                <div className="px-6 pt-8 pb-6 glass-top flex items-start gap-4">
+                  <div className="w-11 h-11 bg-[color-mix(in_srgb,var(--primary)_14%,white)] rounded-2xl flex items-center justify-center text-[var(--primary)] shrink-0">
                     <Sparkles size={20} />
                   </div>
-                  <div>
-                    <h2 className="font-bold text-slate-900">SenangGov</h2>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                      Online & Helpful
+                  <div className="space-y-1">
+                    <h1 className="font-display text-[1.75rem] leading-[1.05] text-[var(--on-surface)]">SenangGov</h1>
+                    <p className="text-xs text-[var(--on-surface-variant)] max-w-[17rem]">A diplomatic assistant for Malaysian government renewals, designed for calm, high-trust decisions.</p>
+                    <p className="status-chip ready">
+                      <span className="w-1.5 h-1.5 bg-[var(--on-secondary-container)] rounded-full animate-pulse"></span>
+                      Ready
                     </p>
                   </div>
                 </div>
 
+                <div className="px-6 pb-4 flex gap-2 overflow-x-auto">
+                  <button onClick={() => handleServiceSelect('passport')} className="btn-secondary whitespace-nowrap text-sm py-2 px-4">Passport</button>
+                  <button onClick={() => handleServiceSelect('roadtax')} className="btn-secondary whitespace-nowrap text-sm py-2 px-4">Road Tax</button>
+                  <button onClick={() => handleServiceSelect('license')} className="btn-secondary whitespace-nowrap text-sm py-2 px-4">Licence</button>
+                </div>
+
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
+                <div className="flex-1 overflow-y-auto px-6 pb-6 min-h-0">
                   {messages.map((msg, idx) => (
                     <div 
                       key={idx} 
-                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} ${idx === 0 ? 'mt-0' : messages[idx - 1].role === msg.role ? 'mt-3' : 'mt-6'}`}
                     >
-                      <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed relative ${
+                      <div className={`max-w-[85%] p-4 rounded-[1.5rem] text-[0.875rem] leading-relaxed relative ambient-float ${
                         msg.role === 'user' 
-                          ? 'bg-purple-600 text-white rounded-tr-none shadow-md shadow-purple-100' 
-                          : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'
+                          ? 'bg-[var(--primary)] text-white rounded-br-md' 
+                          : 'bg-[var(--surface-container-highest)] text-[var(--on-surface)] rounded-bl-md'
                       }`}>
                         {msg.content}
                         {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                          <div className="mt-3 pt-3 px-3 py-2 rounded-xl bg-[color-mix(in_srgb,var(--surface-container-low)_80%,white)] text-[11px] text-[var(--on-surface-variant)]">
                             <span className="font-semibold">Sources:</span> {msg.sources.join(' • ')}
                           </div>
                         )}
                       </div>
-                      <div className={`flex items-center gap-1.5 mt-1.5 px-1 text-[10px] font-medium ${
-                        msg.role === 'user' ? 'text-slate-400' : 'text-slate-400'
-                      }`}>
+                      <div className="flex items-center gap-1.5 mt-1.5 px-1 text-[10px] font-medium text-[color-mix(in_srgb,var(--on-surface-variant)_72%,white)]">
                         <span>{msg.timestamp}</span>
                         {msg.role === 'user' && (
-                          <span className={msg.status === 'read' ? 'text-emerald-500' : 'text-slate-300'}>
+                          <span className={msg.status === 'read' ? 'text-[var(--on-secondary-container)]' : 'text-[color-mix(in_srgb,var(--on-surface-variant)_40%,white)]'}>
                             {msg.status === 'read' ? 'Read' : 'Sent'}
                           </span>
                         )}
@@ -380,23 +385,23 @@ export default function App() {
                   ))}
                   {isTyping && (
                     <div className="flex flex-col items-start">
-                      <div className="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex items-center gap-2">
+                      <div className="bg-[var(--surface-container-highest)] p-4 rounded-[1.5rem] rounded-bl-md ambient-float flex items-center gap-2">
                         <div className="flex gap-1">
-                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                         </div>
-                        <span className="text-xs text-slate-400 font-medium ml-1">Assistant is typing...</span>
+                        <span className="text-xs text-[var(--on-surface-variant)] font-medium ml-1">Assistant is typing...</span>
                       </div>
                     </div>
                   )}
                   {userIsTyping && !isTyping && (
                     <div className="flex flex-col items-end">
-                      <div className="bg-purple-50 p-3 rounded-2xl rounded-tr-none border border-purple-100 flex items-center gap-2">
-                        <span className="text-[10px] text-purple-400 font-medium">You are typing...</span>
+                      <div className="bg-[color-mix(in_srgb,var(--primary)_12%,white)] p-3 rounded-[1.5rem] rounded-br-md flex items-center gap-2">
+                        <span className="text-[10px] text-[color-mix(in_srgb,var(--primary)_60%,white)] font-medium">You are typing...</span>
                         <div className="flex gap-1">
-                          <span className="w-1 h-1 bg-purple-300 rounded-full animate-pulse"></span>
-                          <span className="w-1 h-1 bg-purple-300 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></span>
+                          <span className="w-1 h-1 bg-[color-mix(in_srgb,var(--primary)_45%,white)] rounded-full animate-pulse"></span>
+                          <span className="w-1 h-1 bg-[color-mix(in_srgb,var(--primary)_45%,white)] rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></span>
                         </div>
                       </div>
                     </div>
@@ -405,29 +410,29 @@ export default function App() {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-6 bg-white border-t border-slate-100">
-                  <div className="relative flex items-center">
+                <div className="p-6 bg-[var(--surface-container-low)]">
+                  <div className="relative flex items-center bg-[var(--surface-container-lowest)] rounded-full ambient-float px-2 py-2">
                     <input 
                       type="text" 
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Ask about passport, road tax, etc..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-5 pr-14 text-sm focus:outline-none focus:border-purple-500 transition-all"
+                      className="w-full bg-transparent rounded-full py-3 pl-5 pr-14 text-sm focus:outline-none text-[var(--on-surface)] placeholder:text-[color-mix(in_srgb,var(--on-surface-variant)_60%,white)] transition-all"
                     />
                     <button 
                       onClick={handleSendMessage}
                       disabled={!input.trim() || isTyping}
                       className={`absolute right-2 p-2 rounded-xl transition-all ${
                         !input.trim() || isTyping 
-                          ? 'text-slate-300' 
-                          : 'bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-100'
+                          ? 'text-[color-mix(in_srgb,var(--on-surface-variant)_40%,white)]' 
+                          : 'text-white btn-primary !p-3'
                       }`}
                     >
                       <Send size={20} />
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-3 text-center">
+                  <p className="text-[10px] text-[var(--on-surface-variant)]/80 mt-3 text-center">
                     AI can make mistakes. Verify important info on official portals.
                   </p>
                 </div>
@@ -442,8 +447,8 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
-                <div className="w-24 h-24 bg-emerald-50 rounded-3xl flex items-center justify-center mb-8">
-                  <ShieldCheck size={48} className="text-emerald-600" />
+                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl flex items-center justify-center mb-8">
+                  <ShieldCheck size={48} className="text-[var(--primary)]" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Passport Renewal Made Simple</h2>
                 <p className="text-slate-500 mb-12 leading-relaxed">
@@ -453,7 +458,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('passport_checker')}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 group"
+                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 group"
                   >
                     Start Renewal Check
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -489,7 +494,7 @@ export default function App() {
                           onClick={() => setUserData({ ...userData, age })}
                           className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             userData.age === age 
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700' 
+                              ? 'border-emerald-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -511,7 +516,7 @@ export default function App() {
                           onClick={() => setUserData({ ...userData, hasPassport: val })}
                           className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             userData.hasPassport === val 
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700' 
+                              ? 'border-emerald-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -533,7 +538,7 @@ export default function App() {
                           onClick={() => setUserData({ ...userData, isDamagedOrLost: val })}
                           className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             userData.isDamagedOrLost === val 
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700' 
+                              ? 'border-emerald-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -556,7 +561,7 @@ export default function App() {
                           onClick={() => setUserData({ ...userData, isSpecialCategory: val })}
                           className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             userData.isSpecialCategory === val 
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700' 
+                              ? 'border-emerald-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -586,18 +591,18 @@ export default function App() {
                 className="p-6 space-y-8 h-full overflow-y-auto"
               >
                 {/* Result Banner */}
-                <div className={`p-6 rounded-3xl ${eligibility.isEligibleOnline ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
+                <div className={`p-6 rounded-3xl ${eligibility.isEligibleOnline ? 'bg-[color-mix(in_srgb,var(--primary)_10%,white)] border border-emerald-100' : 'bg-[color-mix(in_srgb,var(--tertiary-container)_14%,white)] border border-amber-100'}`}>
                   <div className="flex items-start gap-4">
                     {eligibility.isEligibleOnline ? (
-                      <CheckCircle2 className="text-emerald-600 mt-1" size={24} />
+                      <CheckCircle2 className="text-[var(--primary)] mt-1" size={24} />
                     ) : (
-                      <AlertCircle className="text-amber-600 mt-1" size={24} />
+                      <AlertCircle className="text-[var(--tertiary-container)] mt-1" size={24} />
                     )}
                     <div>
-                      <h3 className={`font-bold text-lg ${eligibility.isEligibleOnline ? 'text-emerald-900' : 'text-amber-900'}`}>
+                      <h3 className={`font-bold text-lg ${eligibility.isEligibleOnline ? 'text-[var(--primary)]' : 'text-[var(--tertiary-container)]'}`}>
                         {eligibility.isEligibleOnline ? 'Eligible for Online Renewal' : 'Counter Service Required'}
                       </h3>
-                      <p className={`text-sm mt-1 ${eligibility.isEligibleOnline ? 'text-emerald-700' : 'text-amber-700'}`}>
+                      <p className={`text-sm mt-1 ${eligibility.isEligibleOnline ? 'text-[var(--primary)]' : 'text-[var(--tertiary-container)]'}`}>
                         {eligibility.isEligibleOnline 
                           ? 'You can proceed with MyOnline Passport.' 
                           : eligibility.reason}
@@ -626,7 +631,7 @@ export default function App() {
                 {/* Steps Section */}
                 <div className="space-y-4">
                   <h4 className="font-bold text-slate-900 flex items-center gap-2">
-                    <Info size={18} className="text-emerald-600" /> 
+                    <Info size={18} className="text-[var(--primary)]" /> 
                     {eligibility.isEligibleOnline ? 'Online Renewal Steps' : 'Counter Renewal Steps'}
                   </h4>
                   <div className="space-y-6 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
@@ -680,7 +685,7 @@ export default function App() {
 
                 <button
                   onClick={() => setCurrentScreen('passport_checklist')}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
                 >
                   View Collection Checklist
                   <ChevronRight size={20} />
@@ -704,7 +709,7 @@ export default function App() {
                 <div className="space-y-6">
                   <div className="p-6 border-2 border-slate-100 rounded-3xl space-y-4">
                     <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                      <User size={18} className="text-emerald-600" /> 
+                      <User size={18} className="text-[var(--primary)]" /> 
                       {userData.age && userData.age >= 18 ? 'For Applicants 18+' : 'For Applicants Below 18'}
                     </h3>
                     <ul className="space-y-3">
@@ -721,7 +726,7 @@ export default function App() {
                           <CheckItem text="Applicant's Current Passport" />
                           <CheckItem text="MyKad of Parent/Guardian" />
                           <CheckItem text="Printed Payment Receipt" />
-                          <li className="text-xs text-amber-600 font-medium bg-amber-50 p-2 rounded-lg mt-2">
+                          <li className="text-xs text-[var(--tertiary-container)] font-medium bg-[color-mix(in_srgb,var(--tertiary-container)_14%,white)] p-2 rounded-lg mt-2">
                             * Parent/Guardian must be present during collection.
                           </li>
                         </>
@@ -729,9 +734,9 @@ export default function App() {
                     </ul>
                   </div>
 
-                  <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
-                    <h4 className="font-bold text-emerald-900 mb-2">Final Reminder</h4>
-                    <p className="text-sm text-emerald-800 leading-relaxed">
+                  <div className="bg-[color-mix(in_srgb,var(--primary)_10%,white)] p-6 rounded-3xl border border-emerald-100">
+                    <h4 className="font-bold text-[var(--primary)] mb-2">Final Reminder</h4>
+                    <p className="text-sm text-[var(--primary)] leading-relaxed">
                       Collection must be done at the office you selected during the online application. Ensure your documents are original and in good condition.
                     </p>
                   </div>
@@ -765,8 +770,8 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
-                <div className="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mb-8">
-                  <Car size={48} className="text-blue-600" />
+                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl flex items-center justify-center mb-8">
+                  <Car size={48} className="text-[var(--primary)]" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Road Tax Renewal Helper</h2>
                 <p className="text-slate-500 mb-12 leading-relaxed">
@@ -776,7 +781,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('roadtax_checker')}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
+                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
                   >
                     Check My Readiness
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -808,7 +813,7 @@ export default function App() {
                   {/* Insurance */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <ShieldCheck size={16} className="text-blue-600" /> Is your insurance still valid?
+                      <ShieldCheck size={16} className="text-[var(--primary)]" /> Is your insurance still valid?
                     </label>
                     <div className="flex gap-2">
                       {[true, false].map((val) => (
@@ -817,7 +822,7 @@ export default function App() {
                           onClick={() => setRoadTaxData({ ...roadTaxData, hasInsurance: val })}
                           className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             roadTaxData.hasInsurance === val 
-                              ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                              ? 'border-blue-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -830,7 +835,7 @@ export default function App() {
                   {/* Blacklist */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <AlertCircle size={16} className="text-blue-600" /> Any active JPJ/PDRM blacklist?
+                      <AlertCircle size={16} className="text-[var(--primary)]" /> Any active JPJ/PDRM blacklist?
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {['no', 'yes', 'not_sure'].map((val) => (
@@ -839,7 +844,7 @@ export default function App() {
                           onClick={() => setRoadTaxData({ ...roadTaxData, isBlacklisted: val as any })}
                           className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             roadTaxData.isBlacklisted === val 
-                              ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                              ? 'border-blue-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -852,7 +857,7 @@ export default function App() {
                   {/* Inspection */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <FileText size={16} className="text-blue-600" /> Does it need PUSPAKOM inspection?
+                      <FileText size={16} className="text-[var(--primary)]" /> Does it need PUSPAKOM inspection?
                     </label>
                     <p className="text-[10px] text-slate-400 -mt-2">Required if expired &gt; 3 years or commercial vehicle</p>
                     <div className="grid grid-cols-3 gap-2">
@@ -862,7 +867,7 @@ export default function App() {
                           onClick={() => setRoadTaxData({ ...roadTaxData, needsInspection: val as any })}
                           className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             roadTaxData.needsInspection === val 
-                              ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                              ? 'border-blue-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -875,7 +880,7 @@ export default function App() {
                   {/* Required Info */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <HelpCircle size={16} className="text-blue-600" /> Do you have vehicle & IC details?
+                      <HelpCircle size={16} className="text-[var(--primary)]" /> Do you have vehicle & IC details?
                     </label>
                     <div className="flex gap-2">
                       {[true, false].map((val) => (
@@ -884,7 +889,7 @@ export default function App() {
                           onClick={() => setRoadTaxData({ ...roadTaxData, hasRequiredInfo: val })}
                           className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             roadTaxData.hasRequiredInfo === val 
-                              ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                              ? 'border-blue-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -915,32 +920,32 @@ export default function App() {
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
-                  eligibility.status === 'ready' ? 'bg-emerald-50 border border-emerald-100' : 
-                  eligibility.status === 'blocked' ? 'bg-rose-50 border border-rose-100' : 
-                  'bg-amber-50 border border-amber-100'
+                  eligibility.status === 'ready' ? 'bg-[color-mix(in_srgb,var(--primary)_10%,white)] border border-emerald-100' : 
+                  eligibility.status === 'blocked' ? 'bg-[color-mix(in_srgb,var(--error)_12%,white)] border border-rose-100' : 
+                  'bg-[color-mix(in_srgb,var(--tertiary-container)_14%,white)] border border-amber-100'
                 }`}>
                   <div className="flex items-start gap-4">
                     {eligibility.status === 'ready' ? (
-                      <CheckCircle2 className="text-emerald-600 mt-1" size={24} />
+                      <CheckCircle2 className="text-[var(--primary)] mt-1" size={24} />
                     ) : eligibility.status === 'blocked' ? (
-                      <AlertCircle className="text-rose-600 mt-1" size={24} />
+                      <AlertCircle className="text-[var(--error)] mt-1" size={24} />
                     ) : (
-                      <HelpCircle className="text-amber-600 mt-1" size={24} />
+                      <HelpCircle className="text-[var(--tertiary-container)] mt-1" size={24} />
                     )}
                     <div>
                       <h3 className={`font-bold text-lg ${
-                        eligibility.status === 'ready' ? 'text-emerald-900' : 
-                        eligibility.status === 'blocked' ? 'text-rose-900' : 
-                        'text-amber-900'
+                        eligibility.status === 'ready' ? 'text-[var(--primary)]' : 
+                        eligibility.status === 'blocked' ? 'text-[var(--error)]' : 
+                        'text-[var(--tertiary-container)]'
                       }`}>
                         {eligibility.status === 'ready' ? 'Ready for Renewal' : 
                          eligibility.status === 'blocked' ? 'Action Required' : 
                          'Status Unclear'}
                       </h3>
                       <p className={`text-sm mt-1 ${
-                        eligibility.status === 'ready' ? 'text-emerald-700' : 
-                        eligibility.status === 'blocked' ? 'text-rose-700' : 
-                        'text-amber-700'
+                        eligibility.status === 'ready' ? 'text-[var(--primary)]' : 
+                        eligibility.status === 'blocked' ? 'text-[var(--error)]' : 
+                        'text-[var(--tertiary-container)]'
                       }`}>
                         {eligibility.reason || "You can proceed with your road tax renewal."}
                       </p>
@@ -951,7 +956,7 @@ export default function App() {
                 {/* Next Steps */}
                 <div className="space-y-4">
                   <h4 className="font-bold text-slate-900 flex items-center gap-2">
-                    <ChevronRight size={18} className="text-blue-600" /> 
+                    <ChevronRight size={18} className="text-[var(--primary)]" /> 
                     What to do next
                   </h4>
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
@@ -982,7 +987,7 @@ export default function App() {
                 {eligibility.status === 'blocked' && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Resolve Issues</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--error)] hover:bg-[var(--error)] text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-100">
                       Check JPJ Status
                       <ExternalLink size={18} />
                     </a>
@@ -993,7 +998,7 @@ export default function App() {
                 {eligibility.status === 'pending' && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Verify Your Status</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100">
                       Check JPJ Status
                       <ExternalLink size={18} />
                     </a>
@@ -1025,8 +1030,8 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
-                <div className="w-24 h-24 bg-purple-50 rounded-3xl flex items-center justify-center mb-8">
-                  <IdCard size={48} className="text-purple-600" />
+                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl flex items-center justify-center mb-8">
+                  <IdCard size={48} className="text-[var(--primary)]" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Driving Licence Renewal Helper</h2>
                 <p className="text-slate-500 mb-12 leading-relaxed">
@@ -1036,7 +1041,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('license_checker')}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-purple-200 flex items-center justify-center gap-2 group"
+                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-purple-200 flex items-center justify-center gap-2 group"
                   >
                     Check My Eligibility
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -1068,7 +1073,7 @@ export default function App() {
                   {/* Licence Type */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <IdCard size={16} className="text-purple-600" /> What is your licence type?
+                      <IdCard size={16} className="text-[var(--primary)]" /> What is your licence type?
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       {[
@@ -1082,7 +1087,7 @@ export default function App() {
                           onClick={() => setLicenseData({ ...licenseData, type: type.id as any })}
                           className={`py-3 px-2 rounded-xl border-2 transition-all text-xs font-medium ${
                             licenseData.type === type.id 
-                              ? 'border-purple-600 bg-purple-50 text-purple-700' 
+                              ? 'border-purple-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -1095,7 +1100,7 @@ export default function App() {
                   {/* Expiry Status */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <AlertCircle size={16} className="text-purple-600" /> What is the expiry status?
+                      <AlertCircle size={16} className="text-[var(--primary)]" /> What is the expiry status?
                     </label>
                     <div className="space-y-2">
                       {[
@@ -1108,7 +1113,7 @@ export default function App() {
                           onClick={() => setLicenseData({ ...licenseData, expiryStatus: status.id as any })}
                           className={`w-full py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium text-left ${
                             licenseData.expiryStatus === status.id 
-                              ? 'border-purple-600 bg-purple-50 text-purple-700' 
+                              ? 'border-purple-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                               : 'border-slate-100 hover:border-slate-200 text-slate-600'
                           }`}
                         >
@@ -1122,7 +1127,7 @@ export default function App() {
                   {licenseData.type === 'CDL' && (
                     <div className="space-y-3">
                       <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                        <ChevronRight size={16} className="text-purple-600" /> Intended renewal period?
+                        <ChevronRight size={16} className="text-[var(--primary)]" /> Intended renewal period?
                       </label>
                       <div className="grid grid-cols-5 gap-2">
                         {[1, 2, 3, 5, 10].map((year) => (
@@ -1131,7 +1136,7 @@ export default function App() {
                             onClick={() => setLicenseData({ ...licenseData, renewalDuration: year })}
                             className={`py-2 rounded-lg border-2 transition-all text-xs font-bold ${
                               licenseData.renewalDuration === year 
-                                ? 'border-purple-600 bg-purple-50 text-purple-700' 
+                                ? 'border-purple-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
                                 : 'border-slate-100 hover:border-slate-200 text-slate-600'
                             }`}
                           >
@@ -1163,32 +1168,32 @@ export default function App() {
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
-                  eligibility.status === 'ready' ? 'bg-emerald-50 border border-emerald-100' : 
-                  eligibility.status === 'blocked' ? 'bg-rose-50 border border-rose-100' : 
-                  'bg-amber-50 border border-amber-100'
+                  eligibility.status === 'ready' ? 'bg-[color-mix(in_srgb,var(--primary)_10%,white)] border border-emerald-100' : 
+                  eligibility.status === 'blocked' ? 'bg-[color-mix(in_srgb,var(--error)_12%,white)] border border-rose-100' : 
+                  'bg-[color-mix(in_srgb,var(--tertiary-container)_14%,white)] border border-amber-100'
                 }`}>
                   <div className="flex items-start gap-4">
                     {eligibility.status === 'ready' ? (
-                      <CheckCircle2 className="text-emerald-600 mt-1" size={24} />
+                      <CheckCircle2 className="text-[var(--primary)] mt-1" size={24} />
                     ) : eligibility.status === 'blocked' ? (
-                      <AlertCircle className="text-rose-600 mt-1" size={24} />
+                      <AlertCircle className="text-[var(--error)] mt-1" size={24} />
                     ) : (
-                      <HelpCircle className="text-amber-600 mt-1" size={24} />
+                      <HelpCircle className="text-[var(--tertiary-container)] mt-1" size={24} />
                     )}
                     <div>
                       <h3 className={`font-bold text-lg ${
-                        eligibility.status === 'ready' ? 'text-emerald-900' : 
-                        eligibility.status === 'blocked' ? 'text-rose-900' : 
-                        'text-amber-900'
+                        eligibility.status === 'ready' ? 'text-[var(--primary)]' : 
+                        eligibility.status === 'blocked' ? 'text-[var(--error)]' : 
+                        'text-[var(--tertiary-container)]'
                       }`}>
                         {eligibility.status === 'ready' ? 'Ready to Renew' : 
                          eligibility.status === 'blocked' ? 'Action Required' : 
                          'Status Unclear'}
                       </h3>
                       <p className={`text-sm mt-1 ${
-                        eligibility.status === 'ready' ? 'text-emerald-700' : 
-                        eligibility.status === 'blocked' ? 'text-rose-700' : 
-                        'text-amber-700'
+                        eligibility.status === 'ready' ? 'text-[var(--primary)]' : 
+                        eligibility.status === 'blocked' ? 'text-[var(--error)]' : 
+                        'text-[var(--tertiary-container)]'
                       }`}>
                         {eligibility.reason}
                       </p>
@@ -1224,7 +1229,7 @@ export default function App() {
                 {/* Next Steps */}
                 <div className="space-y-4">
                   <h4 className="font-bold text-slate-900 flex items-center gap-2">
-                    <ChevronRight size={18} className="text-purple-600" /> 
+                    <ChevronRight size={18} className="text-[var(--primary)]" /> 
                     What to do next
                   </h4>
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
@@ -1236,11 +1241,11 @@ export default function App() {
 
                 {/* Digital Awareness */}
                 {eligibility.status === 'ready' && (
-                  <div className="bg-purple-50 p-6 rounded-3xl border border-purple-100 flex gap-4">
-                    <Info className="text-purple-600 shrink-0" size={20} />
+                  <div className="bg-[color-mix(in_srgb,var(--primary)_10%,white)] p-6 rounded-3xl border border-purple-100 flex gap-4">
+                    <Info className="text-[var(--primary)] shrink-0" size={20} />
                     <div>
-                      <h5 className="font-bold text-purple-900 text-sm">Digital Licence Awareness</h5>
-                      <p className="text-xs text-purple-700 mt-1 leading-relaxed">
+                      <h5 className="font-bold text-[var(--primary)] text-sm">Digital Licence Awareness</h5>
+                      <p className="text-xs text-[var(--primary)] mt-1 leading-relaxed">
                         After renewal, you can access your digital driving licence via the <strong>MyJPJ</strong> app. Physical cards are no longer mandatory but can be requested.
                       </p>
                     </div>
@@ -1268,7 +1273,7 @@ export default function App() {
                 {(eligibility.status === 'blocked' || eligibility.status === 'pending') && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Verify on Official Portal</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-100">
                       Go to JPJ Portal
                       <ExternalLink size={18} />
                     </a>
@@ -1295,7 +1300,7 @@ export default function App() {
         </main>
 
         {/* Bottom Navigation Bar */}
-        <nav className="bg-white border-t border-slate-100 px-2 py-2 flex justify-around items-center shrink-0 z-20">
+        <nav className="glass-top px-3 py-3 flex justify-around items-center shrink-0 z-20 rounded-t-[1.75rem]">
           {[
             { id: 'ai', label: 'AI Assistant', icon: Sparkles, screen: 'ai_assistant' as Screen },
             { id: 'passport', label: 'Passport', icon: ShieldCheck, screen: 'passport_landing' as Screen, service: 'passport' as Service },
@@ -1314,8 +1319,8 @@ export default function App() {
                   setCurrentScreen(item.screen);
                   if (item.service) setActiveService(item.service);
                 }}
-                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all relative ${
-                  active ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'
+                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all relative ${
+                  active ? 'text-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_10%,white)]' : 'text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]'
                 }`}
               >
                 <Icon size={20} className={active ? 'scale-110' : ''} />
@@ -1323,7 +1328,7 @@ export default function App() {
                 {active && (
                   <motion.div 
                     layoutId="activeTab"
-                    className="absolute -bottom-1 w-1 h-1 bg-emerald-600 rounded-full"
+                    className="absolute -bottom-0.5 w-1 h-1 bg-[var(--primary)] rounded-full"
                   />
                 )}
               </button>
@@ -1339,19 +1344,19 @@ function ServiceCard({ icon, title, desc, onClick, className = "" }: { icon: Rea
   return (
     <button 
       onClick={onClick}
-      className={`p-5 bg-white border-2 border-slate-100 rounded-3xl text-left hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-50 transition-all group ${className}`}
+      className={`p-5 bg-[var(--surface-container-lowest)] rounded-xl text-left transition-all group ambient-float hover:bg-[var(--surface)] ${className}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-white transition-colors">
+          <div className="w-12 h-12 bg-[var(--surface-container-low)] rounded-xl flex items-center justify-center transition-colors text-[var(--primary)]">
             {icon}
           </div>
           <div>
-            <h3 className="font-bold text-slate-900">{title}</h3>
-            <p className="text-xs text-slate-500">{desc}</p>
+            <h3 className="font-bold text-[var(--on-surface)]">{title}</h3>
+            <p className="text-xs text-[var(--on-surface-variant)]">{desc}</p>
           </div>
         </div>
-        <ChevronRight size={20} className="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+        <ChevronRight size={20} className="text-[var(--on-surface-variant)] group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
       </div>
     </button>
   );
@@ -1360,12 +1365,12 @@ function ServiceCard({ icon, title, desc, onClick, className = "" }: { icon: Rea
 function Step({ number, title, desc }: { number: number, title: string, desc: string }) {
   return (
     <div className="flex gap-4 relative z-10">
-      <div className="w-8 h-8 rounded-full bg-white border-2 border-emerald-600 flex items-center justify-center shrink-0 font-bold text-emerald-600 text-sm shadow-sm">
+      <div className="w-8 h-8 rounded-full bg-[var(--surface-container-lowest)] flex items-center justify-center shrink-0 font-bold text-[var(--primary)] text-sm ambient-float">
         {number}
       </div>
       <div>
-        <h5 className="font-bold text-slate-800 text-sm">{title}</h5>
-        <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
+        <h5 className="font-bold text-[var(--on-surface)] text-sm">{title}</h5>
+        <p className="text-xs text-[var(--on-surface-variant)] mt-0.5">{desc}</p>
       </div>
     </div>
   );
@@ -1373,9 +1378,9 @@ function Step({ number, title, desc }: { number: number, title: string, desc: st
 
 function CheckItem({ text }: { text: string }) {
   return (
-    <li className="flex items-center gap-3 text-sm text-slate-600">
-      <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
-        <CheckCircle2 size={14} className="text-emerald-600" />
+    <li className="flex items-center gap-3 text-sm text-[var(--on-surface-variant)]">
+      <div className="w-5 h-5 rounded-md bg-[color-mix(in_srgb,var(--primary)_12%,white)] flex items-center justify-center shrink-0">
+        <CheckCircle2 size={14} className="text-[var(--primary)]" />
       </div>
       {text}
     </li>

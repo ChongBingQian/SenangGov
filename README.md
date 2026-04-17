@@ -210,6 +210,29 @@ npm run build
 npm run start
 ```
 
+For versioned Worker uploads (for CI/CD commands like `wrangler versions upload`), use:
+
+```bash
+npm run deploy:version
+```
+
+This uses `wrangler.jsonc`, which explicitly defines `main`, `assets.directory`, and the `AI` binding.
+
+Dry run:
+
+```bash
+npm run deploy:dry
+```
+
+### Pages-style local test command
+
+A Pages dev script also exists:
+
+```bash
+npm run pages:dev
+```
+
+This can be useful if you want to test with Cloudflare Pages-style routing.
 ## Environment Notes
 
 - `.env.example` includes an optional `APP_URL` placeholder.
@@ -223,6 +246,11 @@ From `package.json`:
 - `npm run build` - build frontend
 - `npm run start` - run Cloud Run server (`server.js`) on `PORT` or `8080`
 - `npm run preview` - preview built app
+- `npm run deploy` - deploy with Wrangler
+- `npm run deploy:version` - upload a Worker version using `wrangler.jsonc`
+- `npm run deploy:dry` - Wrangler dry run
+- `npm run pages:dev` - serve `dist` with Pages dev
+- `npm run deploy:pages` - deploy `dist` to Pages project `senanggov`
 - `npm run clean` - remove `dist`
 - `npm run lint` - TypeScript no-emit check
 
