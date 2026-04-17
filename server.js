@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,6 +18,7 @@ app.use(express.static(distDir));
 
 async function runAiModel(messages) {
   const apiKey =
+    process.env.AI_ASSISTANT ||
     process.env.AI_assistant ||
     process.env.GEMINI_API_KEY ||
     process.env.GOOGLE_API_KEY ||
@@ -24,7 +26,7 @@ async function runAiModel(messages) {
 
   if (!apiKey) {
     throw new Error(
-      'Gemini is not configured. Set AI_assistant, GEMINI_API_KEY, GOOGLE_API_KEY, or GOOGLE_GENAI_API_KEY.'
+      'Gemini is not configured. Set AI_ASSISTANT, AI_assistant, GEMINI_API_KEY, GOOGLE_API_KEY, or GOOGLE_GENAI_API_KEY.'
     );
   }
 
@@ -80,6 +82,23 @@ async function runAiModel(messages) {
 
 app.get('/healthz', (_req, res) => {
   res.status(200).json({ ok: true });
+});
+
+app.get('/api/ai/status', (_req, res) => {
+  const keySource =
+    (process.env.AI_ASSISTANT && 'AI_ASSISTANT') ||
+    (process.env.AI_assistant && 'AI_assistant') ||
+    (process.env.GEMINI_API_KEY && 'GEMINI_API_KEY') ||
+    (process.env.GOOGLE_API_KEY && 'GOOGLE_API_KEY') ||
+    (process.env.GOOGLE_GENAI_API_KEY && 'GOOGLE_GENAI_API_KEY') ||
+    null;
+
+  res.status(200).json({
+    ok: true,
+    aiConfigured: Boolean(keySource),
+    keySource,
+    model: MODEL,
+  });
 });
 
 app.post('/api/ai', async (req, res) => {

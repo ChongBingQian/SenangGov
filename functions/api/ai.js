@@ -4,7 +4,7 @@ const CLOUDFLARE_MODEL = '@cf/meta/llama-3-8b-instruct';
 const GEMINI_DEFAULT_MODEL = 'gemini-2.0-flash';
 
 async function runGeminiModel(env, messages) {
-  const apiKey = env?.AI_assistant || env?.GEMINI_API_KEY || env?.GOOGLE_API_KEY || env?.GOOGLE_GENAI_API_KEY;
+  const apiKey = env?.AI_ASSISTANT || env?.AI_assistant || env?.GEMINI_API_KEY || env?.GOOGLE_API_KEY || env?.GOOGLE_GENAI_API_KEY;
   if (!apiKey) {
     return null;
   }
@@ -74,7 +74,7 @@ async function runAiModel(env, messages) {
   const accountId = env?.CLOUDFLARE_ACCOUNT_ID;
 
   if (!token || !accountId) {
-    throw new Error('AI is not configured. Set AI_assistant (or GEMINI_API_KEY), or add Cloudflare AI binding/token.');
+    throw new Error('AI is not configured. Set AI_ASSISTANT, AI_assistant, GEMINI_API_KEY, GOOGLE_API_KEY, or GOOGLE_GENAI_API_KEY, or add Cloudflare AI binding/token.');
   }
 
   const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${CLOUDFLARE_MODEL}`, {

@@ -34,11 +34,11 @@ It provides a chat-first UI and a single backend API route: `POST /api/ai`.
 Cloud Run (`server.js`):
 
 - Uses Gemini only
-- Requires `AI_assistant` or `GEMINI_API_KEY`
+- Requires any one of: `AI_ASSISTANT`, `AI_assistant`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENAI_API_KEY`
 
 Cloudflare Worker (`worker.js` and `functions/api/ai.js`):
 
-1. Tries Gemini if `AI_assistant` or `GEMINI_API_KEY` exists
+1. Tries Gemini if any supported Gemini key variable exists
 2. Falls back to Cloudflare AI binding (`env.AI.run`)
 3. Falls back to Cloudflare REST API (`CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`)
 
@@ -83,6 +83,7 @@ npm run lint
 
 Main AI variables:
 
+- `AI_ASSISTANT` (recommended Gemini API key name)
 - `AI_assistant` (preferred Gemini API key name)
 - `GEMINI_API_KEY` (backward-compatible alternative)
 - `GOOGLE_API_KEY` (common Google AI key variable)
@@ -133,10 +134,28 @@ gcloud run deploy senanggov \
 	--source . \
 	--region asia-southeast1 \
 	--allow-unauthenticated \
-	--set-env-vars GOOGLE_API_KEY=YOUR_GEMINI_API_KEY
+	--set-env-vars AI_ASSISTANT=YOUR_GEMINI_API_KEY
 ```
 
-Any one of these variable names is accepted by the app runtime: `AI_assistant`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENAI_API_KEY`.
+Windows PowerShell equivalent (use one line or PowerShell backticks, not `\` line continuations):
+
+```powershell
+gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars AI_ASSISTANT=YOUR_GEMINI_API_KEY
+```
+
+If PowerShell shows `gcloud` is not recognized, ensure Cloud SDK is installed and available in PATH, for example:
+
+```powershell
+$env:Path += ";$env:ProgramFiles\Google\Cloud SDK\google-cloud-sdk\bin"
+gcloud --version
+```
+
+Any one of these variable names is accepted by the app runtime: `AI_ASSISTANT`, `AI_assistant`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENAI_API_KEY`.
+
+Quick verification after deploy:
+
+- `GET /healthz` should return `{ "ok": true }`
+- `GET /api/ai/status` should return `aiConfigured: true` and a non-null `keySource`
 
 ### Cloudflare Workers / Pages
 
