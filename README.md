@@ -6,7 +6,7 @@ A React + Vite assistant that helps Malaysian users check renewal eligibility an
 - Road tax renewal
 - Driving licence renewal
 
-The app includes a chat-first UI and a Cloudflare AI-backed `/api/ai` endpoint.
+The app includes a chat-first UI and a Gemini-backed `/api/ai` endpoint.
 
 ## Tech Stack
 
@@ -17,8 +17,8 @@ The app includes a chat-first UI and a Cloudflare AI-backed `/api/ai` endpoint.
 - Tailwind CSS 4
 - Motion (`motion/react`) for transitions
 - Lucide icons
-- Cloudflare Workers (runtime + Workers AI)
-- Optional Cloudflare Pages Functions route
+- Google Cloud Run
+- Google Gemini API
 
 ## What The App Does
 
@@ -98,17 +98,16 @@ Fee logic:
 
 The frontend calls `POST /api/ai`.
 
-Two server-side implementations exist:
+Cloud Run server implementation:
 
-1. `worker.js` (primary Worker entrypoint from `wrangler.toml`)
-2. `functions/api/ai.js` (Pages Functions style route)
+1. `server.js` (Node + Express)
 
-Both handlers:
+Handler behavior:
 
 - Accept JSON payload with `messages` and optional `systemInstruction`
 - Retrieve relevant snippets from `functions/api/rag.js` and inject them as system context
 - Normalize message roles (`user`, `assistant`, optional `system`)
-- Call Cloudflare Workers AI model `@cf/meta/llama-3-8b-instruct`
+- Call Google Gemini model (`gemini-2.0-flash` by default)
 - Return `{ "text": "...", "sources": ["..."] }` (sources may be empty)
 
 ## Project Structure
@@ -123,8 +122,8 @@ Both handlers:
 |-- functions/
 |   `-- api/
 |       `-- ai.js
-|-- worker.js
-|-- wrangler.toml
+|-- server.js
+|-- Dockerfile
 |-- vite.config.ts
 |-- tsconfig.json
 |-- index.html
@@ -170,46 +169,51 @@ Type-check:
 npm run lint
 ```
 
-## Cloudflare Deployment
+## Google Cloud Run Deployment
 
-Configuration (`wrangler.toml`):
+This repo now includes a Cloud Run runtime:
 
-- `main = "worker.js"`
-- AI binding name: `AI`
-- Assets served from `./dist`
+- `server.js` (Node + Express) serves `dist` and handles `POST /api/ai`
+- `Dockerfile` builds the Vite app and runs the Node server on port `8080`
 
-Deploy Worker + static assets:
+Cloud Run uses Gemini directly for AI responses.
+
+### Required environment variables
+
+- `GEMINI_API_KEY`
+- Optional: `GEMINI_MODEL` (defaults to `gemini-2.0-flash`)
+
+### Deploy with gcloud
+
+1. Enable required services:
+
+```bash
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+```
+
+2. Deploy from source (builds with the included `Dockerfile`):
+
+```bash
+gcloud run deploy senanggov \
+	--source . \
+	--region asia-southeast1 \
+	--allow-unauthenticated \
+	--set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+```
+
+3. Open the service URL returned by Cloud Run.
+
+### Local Cloud Run-like test
 
 ```bash
 npm run build
-npm run deploy
+npm run start
 ```
-
-Dry run:
-
-```bash
-npm run deploy:dry
-```
-
-### Pages-style local test command
-
-A Pages dev script also exists:
-
-```bash
-npm run pages:dev
-```
-
-This can be useful if you want to test with Cloudflare Pages-style routing.
 
 ## Environment Notes
 
 - `.env.example` includes an optional `APP_URL` placeholder.
-- Runtime AI uses either:
-	- Cloudflare Workers AI binding (`env.AI`), or
-	- Cloudflare REST fallback with `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
-- For Worker deployment, set fallback vars as secrets if needed:
-	- `wrangler secret put CLOUDFLARE_API_TOKEN`
-	- `wrangler secret put CLOUDFLARE_ACCOUNT_ID`
+- Runtime AI on Cloud Run uses Gemini API via `GEMINI_API_KEY`.
 
 ## NPM Scripts
 
@@ -217,11 +221,8 @@ From `package.json`:
 
 - `npm run dev` - start Vite on port 3000
 - `npm run build` - build frontend
+- `npm run start` - run Cloud Run server (`server.js`) on `PORT` or `8080`
 - `npm run preview` - preview built app
-- `npm run deploy` - deploy with Wrangler
-- `npm run deploy:dry` - Wrangler dry run
-- `npm run pages:dev` - serve `dist` with Pages dev
-- `npm run deploy:pages` - deploy `dist` to Pages project `senanggov`
 - `npm run clean` - remove `dist`
 - `npm run lint` - TypeScript no-emit check
 
