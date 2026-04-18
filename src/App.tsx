@@ -346,7 +346,7 @@ export default function App() {
   };
 
   return (
-    <div className="gov-app h-screen bg-[var(--surface)] text-[var(--on-surface)] font-body selection:bg-blue-100 overflow-hidden px-2 py-2 sm:px-5 sm:py-6">
+    <div className="gov-app h-[100dvh] min-h-[100dvh] bg-[var(--surface)] text-[var(--on-surface)] font-body selection:bg-blue-100 overflow-hidden px-1 py-1 sm:px-5 sm:py-6">
       <div className="max-w-md mx-auto h-full flex flex-col ambient-float bg-[var(--surface-container-low)] relative overflow-hidden rounded-[2rem]">
         
         {/* Header */}
@@ -403,43 +403,43 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-6 sm:p-8 flex flex-col h-full overflow-hidden min-h-0"
+                className="p-4 sm:p-8 flex flex-col h-full overflow-hidden min-h-0"
               >
-                <div className="pt-2 pb-5 shrink-0">
+                <div className="pt-1 pb-3 sm:pt-2 sm:pb-5 shrink-0">
                   <h1 className="font-display text-4xl leading-[1.05] text-[var(--on-surface)]">SenangGov</h1>
                   <p className="text-sm text-[var(--on-surface-variant)] mt-2 max-w-xs">
                     Start with one of the four sections below. You can switch sections anytime.
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-3 flex-1 min-h-0">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 flex-1 min-h-0 auto-rows-fr sm:flex sm:flex-col">
                   <ServiceCard
                     icon={<Sparkles size={22} />}
                     title="AI Assistant"
                     desc="Chat support for all renewal questions"
                     onClick={handleAiAssistantSelect}
-                    className="flex-1 min-h-0"
+                    className="min-h-0 sm:flex-1"
                   />
                   <ServiceCard
                     icon={<ShieldCheck size={22} />}
                     title="Passport"
                     desc="Check eligibility and renewal steps"
                     onClick={() => handleServiceSelect('passport')}
-                    className="flex-1 min-h-0"
+                    className="min-h-0 sm:flex-1"
                   />
                   <ServiceCard
                     icon={<Car size={22} />}
                     title="Road Tax"
                     desc="Verify readiness before renewing"
                     onClick={() => handleServiceSelect('roadtax')}
-                    className="flex-1 min-h-0"
+                    className="min-h-0 sm:flex-1"
                   />
                   <ServiceCard
                     icon={<IdCard size={22} />}
                     title="License"
                     desc="Renewal guidance by license type"
                     onClick={() => handleServiceSelect('license')}
-                    className="flex-1 min-h-0"
+                    className="min-h-0 sm:flex-1"
                   />
                 </div>
               </motion.div>
