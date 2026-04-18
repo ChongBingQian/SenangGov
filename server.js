@@ -6,7 +6,7 @@ import { buildRagInstruction, retrieveKnowledgeContext } from './functions/api/r
 
 const app = express();
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const PORT = Number(process.env.PORT || 8080);
 
 const __filename = fileURLToPath(import.meta.url);
