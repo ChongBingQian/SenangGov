@@ -456,7 +456,7 @@ export default function App() {
                 {/* Messages Area */}
                 <div
                   onScroll={handleChatScroll}
-                  className={`flex-1 overflow-y-auto px-6 pt-3 pb-6 min-h-0 chat-scroll ${isChatScrolling ? 'chat-scroll-active' : ''}`}
+                  className={`flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y px-6 pt-3 pb-6 min-h-0 chat-scroll ${isChatScrolling ? 'chat-scroll-active' : ''}`}
                 >
                   {messages.map((msg, idx) => (
                     <div 
