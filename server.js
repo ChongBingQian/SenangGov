@@ -32,7 +32,7 @@ async function runAiModel(messages) {
 
   if (!apiKey) {
     throw new Error(
-      'Gemini API is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY / GOOGLE_GENAI_API_KEY).'
+      'Gemini API is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY / GOOGLE_GENAI_API_KEY / AI_assistant).'
     );
   }
 
