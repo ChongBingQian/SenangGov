@@ -23,7 +23,6 @@ It provides a chat-first UI and a single backend API route: `POST /api/ai`.
 - Motion (`motion/react`)
 - Lucide React icons
 - Express (Cloud Run runtime)
-- Cloudflare Workers / Pages Functions (optional legacy runtime)
 
 ## Provider Behavior
 
@@ -93,7 +92,7 @@ Optional app variable:
 
 ## Local Runtime Options
 
-### Option A: Express server (Cloud Run style)
+### Express server (Cloud Run style)
 
 ```bash
 npm run build
@@ -101,13 +100,6 @@ npm run start
 ```
 
 This serves `dist` and handles `POST /api/ai` through `server.js`.
-
-### Option B: Cloudflare Pages-style local dev
-
-```bash
-npm run build
-npm run pages:dev
-```
 
 ## Deployment
 
@@ -149,39 +141,6 @@ Quick verification after deploy:
 - `GET /healthz` should return `{ "ok": true }`
 - `GET /api/ai/status` should return `aiConfigured: true` and `provider: "google-gemini"`
 
-### Cloudflare Workers / Pages
-
-Optional model variable in Wrangler config:
-
-```toml
-[vars]
-CLOUDFLARE_MODEL = "@cf/meta/llama-3-8b-instruct"
-```
-
-Deploy Worker:
-
-```bash
-npm run deploy
-```
-
-Version upload (uses `wrangler.jsonc`):
-
-```bash
-npm run deploy:version
-```
-
-Dry run:
-
-```bash
-npm run deploy:dry
-```
-
-Deploy static build to Pages:
-
-```bash
-npm run deploy:pages
-```
-
 ## Scripts
 
 - `npm run dev` - Vite dev server on port 3000
@@ -189,11 +148,7 @@ npm run deploy:pages
 - `npm run start` - run Express server (`server.js`)
 - `npm run preview` - preview Vite build
 - `npm run lint` - TypeScript check (`tsc --noEmit`)
-- `npm run deploy` - Wrangler deploy
-- `npm run deploy:version` - Wrangler version upload with `wrangler.jsonc`
-- `npm run deploy:dry` - Wrangler dry run
-- `npm run pages:dev` - local Pages dev for `dist`
-- `npm run deploy:pages` - deploy `dist` to Pages project `senanggov`
+- `npm run deploy:cloudrun` - deploy to Google Cloud Run
 - `npm run clean` - remove `dist` (Unix-style command)
 
 ## Official Portals Referenced
