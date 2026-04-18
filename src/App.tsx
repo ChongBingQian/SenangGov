@@ -61,7 +61,9 @@ export default function App() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [userIsTyping, setUserIsTyping] = useState(false);
+  const [isChatScrolling, setIsChatScrolling] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (input.length > 0) {
@@ -78,6 +80,24 @@ export default function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping, userIsTyping]);
+
+  useEffect(() => {
+    return () => {
+      if (chatScrollTimeoutRef.current !== null) {
+        window.clearTimeout(chatScrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleChatScroll = () => {
+    setIsChatScrolling(true);
+    if (chatScrollTimeoutRef.current !== null) {
+      window.clearTimeout(chatScrollTimeoutRef.current);
+    }
+    chatScrollTimeoutRef.current = window.setTimeout(() => {
+      setIsChatScrolling(false);
+    }, 650);
+  };
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -332,12 +352,46 @@ export default function App() {
         {/* Header */}
         {currentScreen !== 'lobby' && (
           <header className="px-6 py-4 flex items-center justify-start glass-top sticky top-0 z-10 shrink-0">
-            <button 
-              onClick={handleBack}
-              className="p-2 hover:bg-[var(--surface-container-highest)] rounded-full transition-colors"
-            >
-              <ArrowLeft size={20} />
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={handleBack}
+                className="p-2 hover:bg-[var(--surface-container-highest)] rounded-full transition-colors"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              {currentScreen === 'ai_assistant' && (
+                <>
+                  <div className="w-9 h-9 bg-[color-mix(in_srgb,var(--primary)_14%,white)] rounded-xl flex items-center justify-center text-[var(--primary)] shrink-0">
+                    <Sparkles size={18} />
+                  </div>
+                  <h1 className="font-display text-[1.5rem] leading-none text-[var(--on-surface)]">AI Assistant</h1>
+                </>
+              )}
+              {currentScreen.startsWith('passport') && (
+                <>
+                  <div className="w-9 h-9 bg-[color-mix(in_srgb,var(--primary)_14%,white)] rounded-xl flex items-center justify-center text-[var(--primary)] shrink-0">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <h1 className="font-display text-[1.5rem] leading-none text-[var(--on-surface)]">Passport</h1>
+                </>
+              )}
+              {currentScreen.startsWith('roadtax') && (
+                <>
+                  <div className="w-9 h-9 bg-[color-mix(in_srgb,var(--primary)_14%,white)] rounded-xl flex items-center justify-center text-[var(--primary)] shrink-0">
+                    <Car size={18} />
+                  </div>
+                  <h1 className="font-display text-[1.5rem] leading-none text-[var(--on-surface)]">Road Tax</h1>
+                </>
+              )}
+              {currentScreen.startsWith('license') && (
+                <>
+                  <div className="w-9 h-9 bg-[color-mix(in_srgb,var(--primary)_14%,white)] rounded-xl flex items-center justify-center text-[var(--primary)] shrink-0">
+                    <IdCard size={18} />
+                  </div>
+                  <h1 className="font-display text-[1.5rem] leading-none text-[var(--on-surface)]">License</h1>
+                </>
+              )}
+            </div>
           </header>
         )}
 
@@ -352,11 +406,7 @@ export default function App() {
                 className="p-6 sm:p-8 flex flex-col h-full overflow-hidden min-h-0"
               >
                 <div className="pt-2 pb-5 shrink-0">
-                  <p className="status-chip ready w-fit mb-4">
-                    <span className="w-1.5 h-1.5 bg-[var(--on-secondary-container)] rounded-full animate-pulse"></span>
-                    Home
-                  </p>
-                  <h1 className="font-display text-4xl leading-[1.05] text-[var(--on-surface)]">Choose Your Section</h1>
+                  <h1 className="font-display text-4xl leading-[1.05] text-[var(--on-surface)]">SenangGov</h1>
                   <p className="text-sm text-[var(--on-surface-variant)] mt-2 max-w-xs">
                     Start with one of the four sections below. You can switch sections anytime.
                   </p>
@@ -403,29 +453,11 @@ export default function App() {
                 exit={{ opacity: 0, x: -20 }}
                 className="flex flex-col h-full bg-[var(--surface-container-low)]"
               >
-                {/* Chat Header */}
-                <div className="px-6 pt-8 pb-6 glass-top flex items-start gap-4">
-                  <div className="w-11 h-11 bg-[color-mix(in_srgb,var(--primary)_14%,white)] rounded-2xl flex items-center justify-center text-[var(--primary)] shrink-0">
-                    <Sparkles size={20} />
-                  </div>
-                  <div className="space-y-1">
-                    <h1 className="font-display text-[1.75rem] leading-[1.05] text-[var(--on-surface)]">SenangGov</h1>
-                    <p className="text-xs text-[var(--on-surface-variant)] max-w-[17rem]">A diplomatic assistant for Malaysian government renewals, designed for calm, high-trust decisions.</p>
-                    <p className="status-chip ready">
-                      <span className="w-1.5 h-1.5 bg-[var(--on-secondary-container)] rounded-full animate-pulse"></span>
-                      Ready
-                    </p>
-                  </div>
-                </div>
-
-                <div className="px-6 pb-4 flex gap-2 overflow-x-auto">
-                  <button onClick={() => handleServiceSelect('passport')} className="btn-secondary whitespace-nowrap text-sm py-2 px-4">Passport</button>
-                  <button onClick={() => handleServiceSelect('roadtax')} className="btn-secondary whitespace-nowrap text-sm py-2 px-4">Road Tax</button>
-                  <button onClick={() => handleServiceSelect('license')} className="btn-secondary whitespace-nowrap text-sm py-2 px-4">Licence</button>
-                </div>
-
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto px-6 pb-6 min-h-0">
+                <div
+                  onScroll={handleChatScroll}
+                  className={`flex-1 overflow-y-auto px-6 pt-3 pb-6 min-h-0 chat-scroll ${isChatScrolling ? 'chat-scroll-active' : ''}`}
+                >
                   {messages.map((msg, idx) => (
                     <div 
                       key={idx} 
@@ -481,7 +513,7 @@ export default function App() {
 
                 {/* Input Area */}
                 <div className="p-6 bg-[var(--surface-container-low)]">
-                  <div className="relative flex items-center bg-[var(--surface-container-lowest)] rounded-full ambient-float px-2 py-2">
+                  <div className="relative flex items-center bg-[var(--surface-container-lowest)] rounded-full ambient-float ui-lift-card px-2 py-2">
                     <input 
                       type="text" 
                       value={input}
@@ -493,7 +525,7 @@ export default function App() {
                     <button 
                       onClick={handleSendMessage}
                       disabled={!input.trim() || isTyping}
-                      className={`absolute right-2 p-2 rounded-xl transition-all ${
+                      className={`absolute right-2 p-2 rounded-xl transition-all ui-lift-card ${
                         !input.trim() || isTyping 
                           ? 'text-[color-mix(in_srgb,var(--on-surface-variant)_40%,white)]' 
                           : 'text-white btn-primary !p-3'
@@ -517,7 +549,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
-                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl flex items-center justify-center mb-8">
+                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl ui-lift-card flex items-center justify-center mb-8">
                   <ShieldCheck size={48} className="text-[var(--primary)]" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Passport Renewal Made Simple</h2>
@@ -528,7 +560,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('passport_checker')}
-                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 group"
+                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all ui-lift-card shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 group"
                   >
                     Start Renewal Check
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -544,7 +576,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto check-scroll"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Eligibility Check</h2>
@@ -562,10 +594,10 @@ export default function App() {
                         <button
                           key={age}
                           onClick={() => setUserData({ ...userData, age })}
-                          className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`py-3 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium ${
                             userData.age === age 
-                              ? 'border-emerald-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {age === 12 ? '≤ 13' : age === 18 ? '14 - 59' : '60+'}
@@ -584,10 +616,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setUserData({ ...userData, hasPassport: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium ${
                             userData.hasPassport === val 
-                              ? 'border-emerald-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {val ? 'Yes' : 'No'}
@@ -606,10 +638,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setUserData({ ...userData, isDamagedOrLost: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium ${
                             userData.isDamagedOrLost === val 
-                              ? 'border-emerald-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {val ? 'Yes' : 'No'}
@@ -629,10 +661,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setUserData({ ...userData, isSpecialCategory: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium ${
                             userData.isSpecialCategory === val 
-                              ? 'border-emerald-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {val ? 'Yes' : 'No'}
@@ -645,7 +677,7 @@ export default function App() {
                 <button
                   disabled={userData.age === null || userData.hasPassport === null || userData.isDamagedOrLost === null || userData.isSpecialCategory === null}
                   onClick={() => setCurrentScreen('passport_guidance')}
-                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all mt-4"
+                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card mt-4"
                 >
                   View My Result
                 </button>
@@ -658,7 +690,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto chat-scroll"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${eligibility.isEligibleOnline ? 'bg-[color-mix(in_srgb,var(--primary)_10%,white)] border border-emerald-100' : 'bg-[color-mix(in_srgb,var(--tertiary-container)_14%,white)] border border-amber-100'}`}>
@@ -755,7 +787,7 @@ export default function App() {
 
                 <button
                   onClick={() => setCurrentScreen('passport_checklist')}
-                  className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card flex items-center justify-center gap-2"
                 >
                   View Collection Checklist
                   <ChevronRight size={20} />
@@ -769,7 +801,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto chat-scroll"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Collection Checklist</h2>
@@ -804,9 +836,9 @@ export default function App() {
                     </ul>
                   </div>
 
-                  <div className="bg-[color-mix(in_srgb,var(--primary)_10%,white)] p-6 rounded-3xl border border-emerald-100">
-                    <h4 className="font-bold text-[var(--primary)] mb-2">Final Reminder</h4>
-                    <p className="text-sm text-[var(--primary)] leading-relaxed">
+                  <div className="bg-white p-6 rounded-3xl ring-1 ring-[color-mix(in_srgb,var(--primary)_24%,white)]">
+                    <h4 className="font-bold text-slate-900 mb-2">Final Reminder</h4>
+                    <p className="text-sm text-slate-700 leading-relaxed">
                       Collection must be done at the office you selected during the online application. Ensure your documents are original and in good condition.
                     </p>
                   </div>
@@ -817,7 +849,7 @@ export default function App() {
                     href="https://imigresen-online.imi.gov.my/eservices/myPasport"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card flex items-center justify-center gap-2"
                   >
                     Go to Official Portal
                     <ExternalLink size={18} />
@@ -840,7 +872,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
-                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl flex items-center justify-center mb-8">
+                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl ui-lift-card flex items-center justify-center mb-8">
                   <Car size={48} className="text-[var(--primary)]" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Road Tax Renewal Helper</h2>
@@ -851,7 +883,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('roadtax_checker')}
-                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
+                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all ui-lift-card shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
                   >
                     Check My Readiness
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -872,7 +904,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto check-scroll"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Renewal Readiness</h2>
@@ -890,10 +922,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setRoadTaxData({ ...roadTaxData, hasInsurance: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium ${
                             roadTaxData.hasInsurance === val 
-                              ? 'border-blue-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {val ? 'Yes' : 'No / Expired'}
@@ -912,10 +944,10 @@ export default function App() {
                         <button
                           key={val}
                           onClick={() => setRoadTaxData({ ...roadTaxData, isBlacklisted: val as any })}
-                          className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`py-3 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium ${
                             roadTaxData.isBlacklisted === val 
-                              ? 'border-blue-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {val === 'no' ? 'None' : val === 'yes' ? 'Yes' : 'Not Sure'}
@@ -935,10 +967,10 @@ export default function App() {
                         <button
                           key={val}
                           onClick={() => setRoadTaxData({ ...roadTaxData, needsInspection: val as any })}
-                          className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`py-3 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium ${
                             roadTaxData.needsInspection === val 
-                              ? 'border-blue-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {val === 'no' ? 'No' : val === 'yes' ? 'Yes' : 'Not Sure'}
@@ -957,10 +989,10 @@ export default function App() {
                         <button
                           key={val.toString()}
                           onClick={() => setRoadTaxData({ ...roadTaxData, hasRequiredInfo: val })}
-                          className={`flex-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                          className={`flex-1 py-3 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium ${
                             roadTaxData.hasRequiredInfo === val 
-                              ? 'border-blue-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {val ? 'Yes' : 'No'}
@@ -973,7 +1005,7 @@ export default function App() {
                 <button
                   disabled={roadTaxData.hasInsurance === null || roadTaxData.isBlacklisted === null || roadTaxData.needsInspection === null || roadTaxData.hasRequiredInfo === null}
                   onClick={() => setCurrentScreen('roadtax_result')}
-                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all mt-4"
+                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card mt-4"
                 >
                   Check Readiness
                 </button>
@@ -986,7 +1018,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto check-scroll"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
@@ -1026,6 +1058,41 @@ export default function App() {
                 {/* Next Steps */}
                 <div className="space-y-4">
                   <h4 className="font-bold text-slate-900 flex items-center gap-2">
+                    <Info size={18} className="text-[var(--primary)]" />
+                    Step-by-step guide
+                  </h4>
+                  <div className="space-y-6 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+                    {eligibility.status === 'ready' && (
+                      <>
+                        <Step number={1} title="Open Renewal Channel" desc="Use MyJPJ app, JPJ portal, or MyEG." />
+                        <Step number={2} title="Confirm Vehicle Profile" desc="Check plate number, owner IC, and insurance linkage." />
+                        <Step number={3} title="Select Renewal" desc="Choose road tax renewal and review the vehicle details." />
+                        <Step number={4} title="Make Payment" desc="Pay online using FPX, debit, or credit card." />
+                        <Step number={5} title="Keep Proof" desc="Save your digital receipt and verify active road tax status." />
+                      </>
+                    )}
+                    {eligibility.status === 'blocked' && (
+                      <>
+                        <Step number={1} title="Identify Blocking Reason" desc="Use the alert above to see if the issue is insurance, blacklist, or inspection." />
+                        <Step number={2} title="Resolve the Issue" desc="Renew insurance, settle summons, or complete PUSPAKOM as required." />
+                        <Step number={3} title="Wait for System Update" desc="Allow JPJ records to reflect your latest cleared status." />
+                        <Step number={4} title="Re-check Eligibility" desc="Return to this checker and verify that your status becomes ready." />
+                      </>
+                    )}
+                    {eligibility.status === 'pending' && (
+                      <>
+                        <Step number={1} title="Verify Blacklist Status" desc="Check JPJ/PDRM blacklist record in MyJPJ or JPJ portal." />
+                        <Step number={2} title="Confirm Inspection Need" desc="Check if your vehicle needs a PUSPAKOM inspection." />
+                        <Step number={3} title="Prepare Required Info" desc="Keep your vehicle plate number and owner IC details ready." />
+                        <Step number={4} title="Run Checker Again" desc="Update your answers and continue once status is confirmed." />
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Next Steps */}
+                <div className="space-y-4">
+                  <h4 className="font-bold text-slate-900 flex items-center gap-2">
                     <ChevronRight size={18} className="text-[var(--primary)]" /> 
                     What to do next
                   </h4>
@@ -1057,7 +1124,7 @@ export default function App() {
                 {eligibility.status === 'blocked' && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Resolve Issues</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--error)] hover:bg-[var(--error)] text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--error)] hover:bg-[var(--error)] text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card flex items-center justify-center gap-2 shadow-lg shadow-rose-100">
                       Check JPJ Status
                       <ExternalLink size={18} />
                     </a>
@@ -1068,7 +1135,7 @@ export default function App() {
                 {eligibility.status === 'pending' && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Verify Your Status</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card flex items-center justify-center gap-2 shadow-lg shadow-blue-100">
                       Check JPJ Status
                       <ExternalLink size={18} />
                     </a>
@@ -1078,7 +1145,7 @@ export default function App() {
                 <div className="space-y-4 pt-4">
                   <button
                     onClick={() => setCurrentScreen('ai_assistant')}
-                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all"
+                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card"
                   >
                     Back to AI Assistant
                   </button>
@@ -1100,7 +1167,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-8 flex flex-col items-center text-center h-full justify-center overflow-y-auto"
               >
-                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl flex items-center justify-center mb-8">
+                <div className="w-24 h-24 bg-[color-mix(in_srgb,var(--primary)_10%,white)] rounded-3xl ui-lift-card flex items-center justify-center mb-8">
                   <IdCard size={48} className="text-[var(--primary)]" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Driving Licence Renewal Helper</h2>
@@ -1111,7 +1178,7 @@ export default function App() {
                 <div className="w-full space-y-4">
                   <button 
                     onClick={() => setCurrentScreen('license_checker')}
-                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-purple-200 flex items-center justify-center gap-2 group"
+                    className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 px-6 rounded-2xl transition-all ui-lift-card shadow-lg shadow-purple-200 flex items-center justify-center gap-2 group"
                   >
                     Check My Eligibility
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -1132,7 +1199,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto check-scroll"
               >
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">Licence Details</h2>
@@ -1155,10 +1222,10 @@ export default function App() {
                         <button
                           key={type.id}
                           onClick={() => setLicenseData({ ...licenseData, type: type.id as any })}
-                          className={`py-3 px-2 rounded-xl border-2 transition-all text-xs font-medium ${
+                          className={`py-3 px-2 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-xs font-medium ${
                             licenseData.type === type.id 
-                              ? 'border-purple-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {type.label}
@@ -1181,10 +1248,10 @@ export default function App() {
                         <button
                           key={status.id}
                           onClick={() => setLicenseData({ ...licenseData, expiryStatus: status.id as any })}
-                          className={`w-full py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium text-left ${
+                          className={`w-full py-3 px-4 rounded-xl border-2 transition-all duration-500 ease-out ui-lift-card text-sm font-medium text-left ${
                             licenseData.expiryStatus === status.id 
-                              ? 'border-purple-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                              : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                              ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           {status.label}
@@ -1204,10 +1271,10 @@ export default function App() {
                           <button
                             key={year}
                             onClick={() => setLicenseData({ ...licenseData, renewalDuration: year })}
-                            className={`py-2 rounded-lg border-2 transition-all text-xs font-bold ${
+                            className={`py-2 rounded-lg border-2 transition-all duration-500 ease-out ui-lift-card text-xs font-bold ${
                               licenseData.renewalDuration === year 
-                                ? 'border-purple-600 bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]' 
-                                : 'border-slate-100 hover:border-slate-200 text-slate-600'
+                                ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md shadow-[color-mix(in_srgb,var(--primary)_35%,white)] ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,white)]'
+                                : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                             }`}
                           >
                             {year}Y
@@ -1221,7 +1288,7 @@ export default function App() {
                 <button
                   disabled={licenseData.type === null || licenseData.expiryStatus === null || (licenseData.type === 'CDL' && licenseData.renewalDuration === null)}
                   onClick={() => setCurrentScreen('license_result')}
-                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all mt-4"
+                  className="w-full bg-slate-900 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card mt-4"
                 >
                   Check Eligibility
                 </button>
@@ -1234,7 +1301,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="p-6 space-y-8 h-full overflow-y-auto"
+                className="p-6 space-y-8 h-full overflow-y-auto check-scroll"
               >
                 {/* Result Banner */}
                 <div className={`p-6 rounded-3xl ${
@@ -1299,6 +1366,49 @@ export default function App() {
                 {/* Next Steps */}
                 <div className="space-y-4">
                   <h4 className="font-bold text-slate-900 flex items-center gap-2">
+                    <Info size={18} className="text-[var(--primary)]" />
+                    Step-by-step guide
+                  </h4>
+                  <div className="space-y-6 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+                    {eligibility.status === 'ready' && licenseData.type === 'CDL' && (
+                      <>
+                        <Step number={1} title="Open Official Channel" desc="Go to MyJPJ app, JPJ portal, or MyEG." />
+                        <Step number={2} title="Choose CDL Renewal" desc="Select renewal duration from 1 to 10 years." />
+                        <Step number={3} title="Review Details" desc="Confirm your licence class and personal information." />
+                        <Step number={4} title="Pay Renewal Fee" desc="Complete payment using available online methods." />
+                        <Step number={5} title="Access Digital Licence" desc="Check your renewed licence in MyJPJ after processing." />
+                      </>
+                    )}
+                    {eligibility.status === 'ready' && licenseData.type === 'Vocational' && (
+                      <>
+                        <Step number={1} title="Prepare Medical Document" desc="Ensure your JPJ L8 medical check is valid." />
+                        <Step number={2} title="Prepare Supporting Docs" desc="Bring IC and existing vocational licence documents." />
+                        <Step number={3} title="Visit Renewal Counter" desc="Renew at JPJ counter or selected post office." />
+                        <Step number={4} title="Make Annual Payment" desc="Pay the vocational renewal fee at the service point." />
+                        <Step number={5} title="Verify Renewal Status" desc="Confirm the renewed status in MyJPJ once updated." />
+                      </>
+                    )}
+                    {eligibility.status === 'blocked' && (
+                      <>
+                        <Step number={1} title="Read the Restriction" desc="Check whether your licence is LDL, PDL, or expired over 3 years." />
+                        <Step number={2} title="Follow Required Route" desc="Proceed with conversion, appeal, or test requirement from JPJ guidance." />
+                        <Step number={3} title="Visit JPJ Counter" desc="Bring your IC and licence documents for officer verification." />
+                        <Step number={4} title="Proceed After Clearance" desc="Continue renewal only after JPJ confirms your eligibility." />
+                      </>
+                    )}
+                    {eligibility.status === 'pending' && (
+                      <>
+                        <Step number={1} title="Complete Checker Inputs" desc="Select your licence type, expiry status, and duration if CDL." />
+                        <Step number={2} title="Re-check Eligibility" desc="Run the checker again to generate accurate guidance." />
+                        <Step number={3} title="Verify with JPJ" desc="Use MyJPJ portal if your licence status is still unclear." />
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Next Steps */}
+                <div className="space-y-4">
+                  <h4 className="font-bold text-slate-900 flex items-center gap-2">
                     <ChevronRight size={18} className="text-[var(--primary)]" /> 
                     What to do next
                   </h4>
@@ -1327,11 +1437,11 @@ export default function App() {
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Recommended Channels</h4>
                     <div className="grid grid-cols-1 gap-3">
-                      <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-purple-500 transition-all">
+                      <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-purple-500 transition-all ui-lift-card">
                         <span className="text-sm font-semibold">MyJPJ App / JPJ Portal</span>
                         <ExternalLink size={16} className="text-slate-400" />
                       </a>
-                      <a href="https://www.myeg.com.my" target="_blank" rel="noopener noreferrer" className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-purple-500 transition-all">
+                      <a href="https://www.myeg.com.my" target="_blank" rel="noopener noreferrer" className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-purple-500 transition-all ui-lift-card">
                         <span className="text-sm font-semibold">MyEG Online</span>
                         <ExternalLink size={16} className="text-slate-400" />
                       </a>
@@ -1343,7 +1453,7 @@ export default function App() {
                 {(eligibility.status === 'blocked' || eligibility.status === 'pending') && (
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-900">Verify on Official Portal</h4>
-                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-100">
+                    <a href="https://www.jpj.gov.my/myjpj/" target="_blank" rel="noopener noreferrer" className="w-full bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card flex items-center justify-center gap-2 shadow-lg shadow-purple-100">
                       Go to JPJ Portal
                       <ExternalLink size={18} />
                     </a>
@@ -1353,7 +1463,7 @@ export default function App() {
                 <div className="space-y-4 pt-4">
                   <button
                     onClick={() => setCurrentScreen('ai_assistant')}
-                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all"
+                    className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl transition-all ui-lift-card"
                   >
                     Back to AI Assistant
                   </button>
@@ -1393,8 +1503,8 @@ export default function App() {
                     if (item.screen !== 'lobby') setHasChosenSection(true);
                     if (item.service) setActiveService(item.service);
                   }}
-                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all relative ${
-                    active ? 'text-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_10%,white)]' : 'text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]'
+                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl relative ui-lift-card ambient-float ${
+                    active ? 'text-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_10%,white)]' : 'text-[var(--on-surface-variant)] bg-[color-mix(in_srgb,var(--surface-container-lowest)_86%,transparent)] hover:text-[var(--on-surface)]'
                   }`}
                 >
                   <Icon size={20} className={active ? 'scale-110' : ''} />
@@ -1419,10 +1529,10 @@ function ServiceCard({ icon, title, desc, onClick, className = "" }: { icon: Rea
   return (
     <button 
       onClick={onClick}
-      className={`p-4 bg-[var(--surface-container-lowest)] rounded-xl text-left transition-all group ambient-float hover:bg-[var(--surface)] h-full ${className}`}
+      className={`p-4 bg-[var(--surface-container-lowest)] rounded-xl text-left transition-all group ambient-float ui-lift-card hover:bg-[var(--surface)] h-full ${className}`}
     >
       <div className="flex items-center justify-between h-full gap-4">
-        <div className="w-11 h-11 bg-[var(--surface-container-low)] rounded-xl flex items-center justify-center transition-colors text-[var(--primary)] shrink-0">
+        <div className="w-11 h-11 bg-[var(--surface-container-low)] rounded-xl flex items-center justify-center transition-colors text-[var(--primary)] shrink-0 ui-lift-card">
             {icon}
         </div>
         <div className="min-w-0 flex-1">
@@ -1437,7 +1547,7 @@ function ServiceCard({ icon, title, desc, onClick, className = "" }: { icon: Rea
 
 function Step({ number, title, desc }: { number: number, title: string, desc: string }) {
   return (
-    <div className="flex gap-4 relative z-10">
+    <div className="flex gap-4 relative z-10 rounded-2xl p-2 -m-2">
       <div className="w-8 h-8 rounded-full bg-[var(--surface-container-lowest)] flex items-center justify-center shrink-0 font-bold text-[var(--primary)] text-sm ambient-float">
         {number}
       </div>
