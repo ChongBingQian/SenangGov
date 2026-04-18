@@ -4,8 +4,7 @@ const DEFAULT_CLOUDFLARE_MODEL = '@cf/meta/llama-3-8b-instruct';
 
 async function runAiModel(env, messages) {
   const model = env?.CLOUDFLARE_MODEL || DEFAULT_CLOUDFLARE_MODEL;
-GEMINI_API_KEY=YOUR_REAL_KEY
-GEMINI_MODEL=gemini-2.0-flash
+
   if (env?.AI?.run) {
     const response = await env.AI.run(model, { messages });
     return {

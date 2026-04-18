@@ -35,7 +35,7 @@ Required:
 
 Optional:
 
-- `GEMINI_MODEL` (default: `gemini-2.0-flash`)
+- `GEMINI_MODEL` (default: `gemini-2.5-flash`)
 
 Also supported as fallback names:
 
@@ -85,7 +85,7 @@ npm run lint
 Main AI variables:
 
 - `GEMINI_API_KEY` (required)
-- `GEMINI_MODEL` (optional, default: `gemini-2.0-flash`)
+- `GEMINI_MODEL` (optional, default: `gemini-2.5-flash`)
 
 Optional app variable:
 
