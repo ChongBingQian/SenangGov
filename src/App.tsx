@@ -412,34 +412,34 @@ export default function App() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 flex-1 min-h-0 auto-rows-fr sm:flex sm:flex-col">
+                <div className="flex flex-col gap-2.5 sm:gap-3 flex-1 min-h-0">
                   <ServiceCard
                     icon={<Sparkles size={22} />}
                     title="AI Assistant"
                     desc="Chat support for all renewal questions"
                     onClick={handleAiAssistantSelect}
-                    className="min-h-0 sm:flex-1"
+                    className="flex-1 min-h-0"
                   />
                   <ServiceCard
                     icon={<ShieldCheck size={22} />}
                     title="Passport"
                     desc="Check eligibility and renewal steps"
                     onClick={() => handleServiceSelect('passport')}
-                    className="min-h-0 sm:flex-1"
+                    className="flex-1 min-h-0"
                   />
                   <ServiceCard
                     icon={<Car size={22} />}
                     title="Road Tax"
                     desc="Verify readiness before renewing"
                     onClick={() => handleServiceSelect('roadtax')}
-                    className="min-h-0 sm:flex-1"
+                    className="flex-1 min-h-0"
                   />
                   <ServiceCard
                     icon={<IdCard size={22} />}
                     title="License"
                     desc="Renewal guidance by license type"
                     onClick={() => handleServiceSelect('license')}
-                    className="min-h-0 sm:flex-1"
+                    className="flex-1 min-h-0"
                   />
                 </div>
               </motion.div>
