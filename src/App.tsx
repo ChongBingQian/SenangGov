@@ -29,7 +29,8 @@ import {
 import { Screen, UserData, EligibilityResult, Service, RoadTaxData, LicenseData } from './types';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('ai_assistant');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('lobby');
+  const [hasChosenSection, setHasChosenSection] = useState(false);
   const [activeService, setActiveService] = useState<Service | null>(null);
   const [userData, setUserData] = useState<UserData>({
     age: null,
@@ -297,22 +298,29 @@ export default function App() {
   }, [userData.age, activeService, licenseData]);
 
   const handleServiceSelect = (service: Service) => {
+    setHasChosenSection(true);
     setActiveService(service);
     if (service === 'passport') setCurrentScreen('passport_landing');
     else if (service === 'roadtax') setCurrentScreen('roadtax_landing');
     else if (service === 'license') setCurrentScreen('license_landing');
   };
 
+  const handleAiAssistantSelect = () => {
+    setHasChosenSection(true);
+    setCurrentScreen('ai_assistant');
+  };
+
   const handleBack = () => {
-    if (currentScreen === 'ai_assistant') return;
-    if (currentScreen === 'passport_landing') setCurrentScreen('ai_assistant');
+    if (currentScreen === 'lobby') return;
+    if (currentScreen === 'ai_assistant') setCurrentScreen('lobby');
+    if (currentScreen === 'passport_landing') setCurrentScreen('lobby');
     if (currentScreen === 'passport_checker') setCurrentScreen('passport_landing');
     if (currentScreen === 'passport_guidance') setCurrentScreen('passport_checker');
     if (currentScreen === 'passport_checklist') setCurrentScreen('passport_guidance');
-    if (currentScreen === 'roadtax_landing') setCurrentScreen('ai_assistant');
+    if (currentScreen === 'roadtax_landing') setCurrentScreen('lobby');
     if (currentScreen === 'roadtax_checker') setCurrentScreen('roadtax_landing');
     if (currentScreen === 'roadtax_result') setCurrentScreen('roadtax_checker');
-    if (currentScreen === 'license_landing') setCurrentScreen('ai_assistant');
+    if (currentScreen === 'license_landing') setCurrentScreen('lobby');
     if (currentScreen === 'license_checker') setCurrentScreen('license_landing');
     if (currentScreen === 'license_result') setCurrentScreen('license_checker');
   };
@@ -322,7 +330,7 @@ export default function App() {
       <div className="max-w-md mx-auto h-full flex flex-col ambient-float bg-[var(--surface-container-low)] relative overflow-hidden rounded-[2rem]">
         
         {/* Header */}
-        {currentScreen !== 'ai_assistant' && (
+        {currentScreen !== 'lobby' && (
           <header className="px-6 py-4 flex items-center justify-start glass-top sticky top-0 z-10 shrink-0">
             <button 
               onClick={handleBack}
@@ -335,6 +343,58 @@ export default function App() {
 
         <main className="flex-1 flex flex-col overflow-hidden min-h-0">
           <AnimatePresence mode="wait">
+            {currentScreen === 'lobby' && (
+              <motion.div
+                key="lobby"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="p-6 sm:p-8 flex flex-col h-full overflow-hidden min-h-0"
+              >
+                <div className="pt-2 pb-5 shrink-0">
+                  <p className="status-chip ready w-fit mb-4">
+                    <span className="w-1.5 h-1.5 bg-[var(--on-secondary-container)] rounded-full animate-pulse"></span>
+                    Home
+                  </p>
+                  <h1 className="font-display text-4xl leading-[1.05] text-[var(--on-surface)]">Choose Your Section</h1>
+                  <p className="text-sm text-[var(--on-surface-variant)] mt-2 max-w-xs">
+                    Start with one of the four sections below. You can switch sections anytime.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 flex-1 min-h-0">
+                  <ServiceCard
+                    icon={<Sparkles size={22} />}
+                    title="AI Assistant"
+                    desc="Chat support for all renewal questions"
+                    onClick={handleAiAssistantSelect}
+                    className="flex-1 min-h-0"
+                  />
+                  <ServiceCard
+                    icon={<ShieldCheck size={22} />}
+                    title="Passport"
+                    desc="Check eligibility and renewal steps"
+                    onClick={() => handleServiceSelect('passport')}
+                    className="flex-1 min-h-0"
+                  />
+                  <ServiceCard
+                    icon={<Car size={22} />}
+                    title="Road Tax"
+                    desc="Verify readiness before renewing"
+                    onClick={() => handleServiceSelect('roadtax')}
+                    className="flex-1 min-h-0"
+                  />
+                  <ServiceCard
+                    icon={<IdCard size={22} />}
+                    title="License"
+                    desc="Renewal guidance by license type"
+                    onClick={() => handleServiceSelect('license')}
+                    className="flex-1 min-h-0"
+                  />
+                </div>
+              </motion.div>
+            )}
+
             {currentScreen === 'ai_assistant' && (
               <motion.div 
                 key="ai_assistant"
@@ -1309,42 +1369,47 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {/* Bottom Navigation Bar */}
-        <nav className="glass-top px-3 py-3 flex justify-around items-center shrink-0 z-20 rounded-t-[1.75rem]">
-          {[
-            { id: 'ai', label: 'AI Assistant', icon: Sparkles, screen: 'ai_assistant' as Screen },
-            { id: 'passport', label: 'Passport', icon: ShieldCheck, screen: 'passport_landing' as Screen, service: 'passport' as Service },
-            { id: 'roadtax', label: 'RoadTax', icon: Car, screen: 'roadtax_landing' as Screen, service: 'roadtax' as Service },
-            { id: 'license', label: 'License', icon: IdCard, screen: 'license_landing' as Screen, service: 'license' as Service },
-          ].map((item) => {
-            const active = (item.id === 'ai' && currentScreen === 'ai_assistant') ||
-                           (item.id === 'passport' && currentScreen.startsWith('passport')) ||
-                           (item.id === 'roadtax' && currentScreen.startsWith('roadtax')) ||
-                           (item.id === 'license' && currentScreen.startsWith('license'));
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setCurrentScreen(item.screen);
-                  if (item.service) setActiveService(item.service);
-                }}
-                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all relative ${
-                  active ? 'text-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_10%,white)]' : 'text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]'
-                }`}
-              >
-                <Icon size={20} className={active ? 'scale-110' : ''} />
-                <span className="text-[9px] font-bold uppercase tracking-wider">{item.label}</span>
-                {active && (
-                  <motion.div 
-                    layoutId="activeTab"
-                    className="absolute -bottom-0.5 w-1 h-1 bg-[var(--primary)] rounded-full"
-                  />
-                )}
-              </button>
-            );
-          })}
-        </nav>
+        {/* Bottom Navigation Bar (hidden on Home) */}
+        {hasChosenSection && currentScreen !== 'lobby' && (
+          <nav className="glass-top px-3 py-3 flex justify-around items-center shrink-0 z-20 rounded-t-[1.75rem]">
+            {[
+              { id: 'lobby', label: 'Home', icon: LayoutGrid, screen: 'lobby' as Screen },
+              { id: 'ai', label: 'AI Assistant', icon: Sparkles, screen: 'ai_assistant' as Screen },
+              { id: 'passport', label: 'Passport', icon: ShieldCheck, screen: 'passport_landing' as Screen, service: 'passport' as Service },
+              { id: 'roadtax', label: 'RoadTax', icon: Car, screen: 'roadtax_landing' as Screen, service: 'roadtax' as Service },
+              { id: 'license', label: 'License', icon: IdCard, screen: 'license_landing' as Screen, service: 'license' as Service },
+            ].map((item) => {
+              const active = (item.id === 'lobby' && currentScreen === 'lobby') ||
+                             (item.id === 'ai' && currentScreen === 'ai_assistant') ||
+                             (item.id === 'passport' && currentScreen.startsWith('passport')) ||
+                             (item.id === 'roadtax' && currentScreen.startsWith('roadtax')) ||
+                             (item.id === 'license' && currentScreen.startsWith('license'));
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setCurrentScreen(item.screen);
+                    if (item.screen !== 'lobby') setHasChosenSection(true);
+                    if (item.service) setActiveService(item.service);
+                  }}
+                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all relative ${
+                    active ? 'text-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_10%,white)]' : 'text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]'
+                  }`}
+                >
+                  <Icon size={20} className={active ? 'scale-110' : ''} />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">{item.label}</span>
+                  {active && (
+                    <motion.div 
+                      layoutId="activeTab"
+                      className="absolute -bottom-0.5 w-1 h-1 bg-[var(--primary)] rounded-full"
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        )}
       </div>
     </div>
   );
@@ -1354,19 +1419,17 @@ function ServiceCard({ icon, title, desc, onClick, className = "" }: { icon: Rea
   return (
     <button 
       onClick={onClick}
-      className={`p-5 bg-[var(--surface-container-lowest)] rounded-xl text-left transition-all group ambient-float hover:bg-[var(--surface)] ${className}`}
+      className={`p-4 bg-[var(--surface-container-lowest)] rounded-xl text-left transition-all group ambient-float hover:bg-[var(--surface)] h-full ${className}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-[var(--surface-container-low)] rounded-xl flex items-center justify-center transition-colors text-[var(--primary)]">
+      <div className="flex items-center justify-between h-full gap-4">
+        <div className="w-11 h-11 bg-[var(--surface-container-low)] rounded-xl flex items-center justify-center transition-colors text-[var(--primary)] shrink-0">
             {icon}
-          </div>
-          <div>
-            <h3 className="font-bold text-[var(--on-surface)]">{title}</h3>
-            <p className="text-xs text-[var(--on-surface-variant)]">{desc}</p>
-          </div>
         </div>
-        <ChevronRight size={20} className="text-[var(--on-surface-variant)] group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
+        <div className="min-w-0 flex-1">
+          <h3 className="font-bold text-[var(--on-surface)] leading-tight">{title}</h3>
+          <p className="text-xs text-[var(--on-surface-variant)] mt-1 leading-relaxed">{desc}</p>
+        </div>
+        <ChevronRight size={20} className="text-[var(--on-surface-variant)] group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all shrink-0" />
       </div>
     </button>
   );

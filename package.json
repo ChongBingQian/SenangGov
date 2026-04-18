@@ -9,7 +9,7 @@
     "start": "node server.js",
     "start:cloudrun": "node server.js",
     "preview": "vite preview",
-    "deploy:cloudrun": "gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY",
+    "deploy:cloudrun": "gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars AI_assistant=YOUR_GEMINI_API_KEY",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
   },

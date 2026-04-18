@@ -30,17 +30,11 @@ It provides a chat-first UI and a single backend API route: `POST /api/ai`.
 
 Required:
 
-- `GEMINI_API_KEY`
+- `AI_assistant`
 
 Optional:
 
 - `GEMINI_MODEL` (default: `gemini-2.5-flash`)
-
-Also supported as fallback names:
-
-- `GOOGLE_API_KEY`
-- `GOOGLE_GENAI_API_KEY`
-- `AI_ASSISTANT` / `AI_assistant`
 
 ## Quick Start
 
@@ -83,7 +77,7 @@ npm run lint
 
 Main AI variables:
 
-- `GEMINI_API_KEY` (required)
+- `AI_assistant` (required)
 - `GEMINI_MODEL` (optional, default: `gemini-2.5-flash`)
 
 Optional app variable:
@@ -118,13 +112,13 @@ gcloud run deploy senanggov \
 	--source . \
 	--region asia-southeast1 \
 	--allow-unauthenticated \
-	--set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+	--set-env-vars AI_assistant=YOUR_GEMINI_API_KEY
 ```
 
 Windows PowerShell equivalent (use one line or PowerShell backticks, not `\` line continuations):
 
 ```powershell
-gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars AI_assistant=YOUR_GEMINI_API_KEY
 ```
 
 If PowerShell shows `gcloud` is not recognized, ensure Cloud SDK is installed and available in PATH, for example:
@@ -134,7 +128,7 @@ $env:Path += ";$env:ProgramFiles\Google\Cloud SDK\google-cloud-sdk\bin"
 gcloud --version
 ```
 
-`GEMINI_API_KEY` is required by the Cloud Run runtime.
+`AI_assistant` is required by the Cloud Run runtime.
 
 Quick verification after deploy:
 
