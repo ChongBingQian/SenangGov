@@ -13,7 +13,7 @@ It provides a chat-first UI and a single backend API route: `POST /api/ai`.
 - Guided eligibility checks with clear status outcomes (`ready`, `blocked`, `pending`)
 - Rule-based flows for passport, road tax, and licence scenarios
 - Retrieval-augmented prompts (RAG) for more accurate assistant answers
-- Cloudflare Workers AI only (Worker binding or Cloudflare REST API)
+- Gemini API integration for assistant responses
 
 ## Stack
 
@@ -23,21 +23,25 @@ It provides a chat-first UI and a single backend API route: `POST /api/ai`.
 - Motion (`motion/react`)
 - Lucide React icons
 - Express (Cloud Run runtime)
-- Cloudflare Workers / Pages Functions (Worker runtime)
+- Cloudflare Workers / Pages Functions (optional legacy runtime)
 
 ## Provider Behavior
 
-`/api/ai` uses Cloudflare Workers AI only.
+`/api/ai` on Cloud Run (`server.js`) uses Google Gemini API.
 
-Cloud Run (`server.js`):
+Required:
 
-- Uses Cloudflare REST API
-- Requires both: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
+- `GEMINI_API_KEY`
 
-Cloudflare Worker (`worker.js` and `functions/api/ai.js`):
+Optional:
 
-1. Uses AI binding (`env.AI.run`) when available
-2. Falls back to Cloudflare REST API (`CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`)
+- `GEMINI_MODEL` (default: `gemini-2.0-flash`)
+
+Also supported as fallback names:
+
+- `GOOGLE_API_KEY`
+- `GOOGLE_GENAI_API_KEY`
+- `AI_ASSISTANT` / `AI_assistant`
 
 ## Quick Start
 
@@ -80,9 +84,8 @@ npm run lint
 
 Main AI variables:
 
-- `CLOUDFLARE_API_TOKEN` (required for REST API mode)
-- `CLOUDFLARE_ACCOUNT_ID` (required for REST API mode)
-- `CLOUDFLARE_MODEL` (optional, default: `@cf/meta/llama-3-8b-instruct`)
+- `GEMINI_API_KEY` (required)
+- `GEMINI_MODEL` (optional, default: `gemini-2.0-flash`)
 
 Optional app variable:
 
@@ -123,13 +126,13 @@ gcloud run deploy senanggov \
 	--source . \
 	--region asia-southeast1 \
 	--allow-unauthenticated \
-	--set-env-vars CLOUDFLARE_API_TOKEN=YOUR_CF_TOKEN,CLOUDFLARE_ACCOUNT_ID=YOUR_CF_ACCOUNT_ID
+	--set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 ```
 
 Windows PowerShell equivalent (use one line or PowerShell backticks, not `\` line continuations):
 
 ```powershell
-gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars CLOUDFLARE_API_TOKEN=YOUR_CF_TOKEN,CLOUDFLARE_ACCOUNT_ID=YOUR_CF_ACCOUNT_ID
+gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 ```
 
 If PowerShell shows `gcloud` is not recognized, ensure Cloud SDK is installed and available in PATH, for example:
@@ -139,12 +142,12 @@ $env:Path += ";$env:ProgramFiles\Google\Cloud SDK\google-cloud-sdk\bin"
 gcloud --version
 ```
 
-Both `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are required by the Cloud Run runtime.
+`GEMINI_API_KEY` is required by the Cloud Run runtime.
 
 Quick verification after deploy:
 
 - `GET /healthz` should return `{ "ok": true }`
-- `GET /api/ai/status` should return `aiConfigured: true` and `provider: "cloudflare-workers-ai-rest"`
+- `GET /api/ai/status` should return `aiConfigured: true` and `provider: "google-gemini"`
 
 ### Cloudflare Workers / Pages
 

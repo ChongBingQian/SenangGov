@@ -6,7 +6,7 @@ import { buildRagInstruction, retrieveKnowledgeContext } from './functions/api/r
 
 const app = express();
 
-const MODEL = process.env.CLOUDFLARE_MODEL || '@cf/meta/llama-3-8b-instruct';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 const PORT = Number(process.env.PORT || 8080);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,35 +16,82 @@ const distDir = path.resolve(__dirname, 'dist');
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(distDir));
 
-async function runAiModel(messages) {
-  const token = process.env.CLOUDFLARE_API_TOKEN;
-  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+function getGeminiApiKey() {
+  return (
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GOOGLE_GENAI_API_KEY ||
+    process.env.AI_ASSISTANT ||
+    process.env.AI_assistant ||
+    ''
+  );
+}
 
-  if (!token || !accountId) {
+async function runAiModel(messages) {
+  const apiKey = getGeminiApiKey();
+
+  if (!apiKey) {
     throw new Error(
-      'Cloudflare Workers AI is not configured. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.'
+      'Gemini API is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY / GOOGLE_GENAI_API_KEY).'
     );
   }
 
+  const systemMessages = messages
+    .filter((msg) => msg?.role === 'system' && typeof msg?.content === 'string')
+    .map((msg) => msg.content.trim())
+    .filter(Boolean);
+
+  const contentMessages = messages
+    .filter((msg) => msg?.role === 'user' || msg?.role === 'assistant')
+    .filter((msg) => typeof msg?.content === 'string' && msg.content.trim().length > 0)
+    .map((msg) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
+
+  if (contentMessages.length === 0) {
+    contentMessages.push({
+      role: 'user',
+      parts: [{ text: 'Please provide a brief helpful response.' }],
+    });
+  }
+
+  const requestBody = {
+    contents: contentMessages,
+    generationConfig: {
+      temperature: 0.4,
+    },
+  };
+
+  if (systemMessages.length > 0) {
+    requestBody.systemInstruction = {
+      parts: [{ text: systemMessages.join('\n\n') }],
+    };
+  }
+
   const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${MODEL}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
     {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify(requestBody),
     }
   );
 
   if (!response.ok) {
     const details = await response.text();
-    throw new Error(`Cloudflare Workers AI API error (${response.status}): ${details.slice(0, 300)}`);
+    throw new Error(`Gemini API error (${response.status}): ${details.slice(0, 300)}`);
   }
 
   const data = await response.json();
-  const text = data?.result?.response || data?.response || '';
+  const candidate = Array.isArray(data?.candidates) ? data.candidates[0] : null;
+  const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
+  const text = parts
+    .map((part) => (typeof part?.text === 'string' ? part.text : ''))
+    .join('')
+    .trim();
 
   return {
     response: text,
@@ -56,14 +103,12 @@ app.get('/healthz', (_req, res) => {
 });
 
 app.get('/api/ai/status', (_req, res) => {
-  const tokenConfigured = Boolean(process.env.CLOUDFLARE_API_TOKEN);
-  const accountConfigured = Boolean(process.env.CLOUDFLARE_ACCOUNT_ID);
-  const aiConfigured = tokenConfigured && accountConfigured;
+  const aiConfigured = Boolean(getGeminiApiKey());
 
   res.status(200).json({
     ok: true,
     aiConfigured,
-    provider: aiConfigured ? 'cloudflare-workers-ai-rest' : null,
+    provider: aiConfigured ? 'google-gemini' : null,
     model: MODEL,
   });
 });
@@ -100,7 +145,7 @@ app.post('/api/ai', async (req, res) => {
   } catch (err) {
     res.status(500).json({
       error: err?.message || 'Unknown error',
-      text: 'Error connecting to Cloudflare Workers AI.',
+      text: 'Error connecting to Gemini API.',
     });
   }
 });
