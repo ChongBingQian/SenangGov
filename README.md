@@ -1,149 +1,161 @@
 # SenangGov
 
-SenangGov is a React + Vite web assistant for Malaysian renewal workflows:
+SenangGov is a React + Express assistant for Malaysian renewal workflows:
 
-- Passport renewal
-- Road tax renewal
-- Driving licence renewal
+- Passport renewal guidance
+- Road tax renewal guidance
+- Driving licence renewal guidance
 
-It provides a chat-first UI and a single backend API route: `POST /api/ai`.
+The app has:
 
-## Features
+- Frontend: Vite + React (chat-first UI)
+- Backend: Express API + Gemini integration + lightweight RAG
 
-- Guided eligibility checks with clear status outcomes (`ready`, `blocked`, `pending`)
-- Rule-based flows for passport, road tax, and licence scenarios
-- Retrieval-augmented prompts (RAG) for more accurate assistant answers
-- Gemini API integration for assistant responses
-
-## Stack
+## Tech Stack
 
 - React 19 + TypeScript
 - Vite 6
 - Tailwind CSS 4
-- Motion (`motion/react`)
-- Lucide React icons
-- Express (Cloud Run runtime)
+- Express 4
+- Google Gemini API
 
-## Provider Behavior
+## What This App Provides
 
-`/api/ai` on Cloud Run (`server.js`) uses Google Gemini API.
+- Guided eligibility checks with statuses like `ready`, `blocked`, and `pending`
+- Rule-based flows for passport, road tax, and licence scenarios
+- Retrieval-augmented context from local knowledge snippets (`functions/api/rag.js`)
+- API endpoint `POST /api/ai` for chat responses
 
-Required:
-
-- `AI_assistant`
-
-Optional:
-
-- `GEMINI_MODEL` (default: `gemini-2.5-flash`)
-
-## Quick Start
-
-Prerequisites:
+## Prerequisites
 
 - Node.js 18+
 - npm
 
-Install dependencies:
+## Installation
 
 ```bash
 npm install
 ```
 
-Run frontend dev server:
+## Environment Variables
+
+Set at least one Gemini API key variable:
+
+- `GEMINI_API_KEY` (recommended)
+- `GOOGLE_API_KEY`
+- `GOOGLE_GENAI_API_KEY`
+- `AI_ASSISTANT`
+- `AI_assistant`
+
+Optional:
+
+- `GEMINI_MODEL` (default: `gemini-2.5-flash`)
+- `PORT` (default: `8080`)
+
+Example PowerShell:
+
+```powershell
+$env:GEMINI_API_KEY="your_key_here"
+```
+
+## Run The Whole App (Recommended)
+
+This is the closest local behavior to production.
+
+1. Build frontend assets:
+
+```bash
+npm run build
+```
+
+2. Start Express server:
+
+```bash
+npm run start
+```
+
+3. Open the app:
+
+- http://localhost:8080/
+
+4. Verify health:
+
+- `GET http://localhost:8080/healthz` -> `{ "ok": true }`
+- `GET http://localhost:8080/api/ai/status` -> provider/model/config status
+
+## Development Mode (Two Processes)
+
+Use this when actively editing frontend code.
+
+Terminal A (backend API):
+
+```bash
+npm run start
+```
+
+Terminal B (frontend with proxy):
 
 ```bash
 npm run dev
 ```
 
-Build production assets:
+Open:
+
+- http://localhost:3000/
+
+In this mode, Vite proxies `/api` and `/healthz` to `http://localhost:8080`.
+
+## Scripts
+
+- `npm run dev` - start Vite dev server on port 3000
+- `npm run build` - build frontend into `dist`
+- `npm run start` - run Express server (`server.js`) on port 8080 by default
+- `npm run preview` - preview built frontend only
+- `npm run lint` - TypeScript type check (`tsc --noEmit`)
+- `npm run deploy:cloudrun` - deploy to Google Cloud Run
+- `npm run clean` - remove `dist` (Unix-style command)
+
+## Docker
+
+Build and run:
 
 ```bash
-npm run build
+docker build -t senanggov .
+docker run -p 8080:8080 -e GEMINI_API_KEY=your_key_here senanggov
 ```
 
-Preview built app:
+## Cloud Run Deployment
 
-```bash
-npm run preview
-```
-
-Type check:
-
-```bash
-npm run lint
-```
-
-## Environment Variables
-
-Main AI variables:
-
-- `AI_assistant` (required)
-- `GEMINI_MODEL` (optional, default: `gemini-2.5-flash`)
-
-Optional app variable:
-
-- `APP_URL`
-
-## Local Runtime Options
-
-### Express server (Cloud Run style)
-
-```bash
-npm run build
-npm run start
-```
-
-This serves `dist` and handles `POST /api/ai` through `server.js`.
-
-## Deployment
-
-### Google Cloud Run
-
-1. Enable services:
+Enable required services:
 
 ```bash
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 ```
 
-2. Deploy:
+Deploy:
 
 ```bash
-gcloud run deploy senanggov \
-	--source . \
-	--region asia-southeast1 \
-	--allow-unauthenticated \
-	--set-env-vars AI_assistant=YOUR_GEMINI_API_KEY
+gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 ```
 
-Windows PowerShell equivalent (use one line or PowerShell backticks, not `\` line continuations):
+PowerShell note: use one line commands (or PowerShell backticks), not shell `\` continuations.
 
-```powershell
-gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars AI_assistant=YOUR_GEMINI_API_KEY
-```
+## API Endpoints
 
-If PowerShell shows `gcloud` is not recognized, ensure Cloud SDK is installed and available in PATH, for example:
+- `GET /healthz` - health check
+- `GET /api/ai/status` - AI provider/model/config check
+- `POST /api/ai` - main assistant endpoint
 
-```powershell
-$env:Path += ";$env:ProgramFiles\Google\Cloud SDK\google-cloud-sdk\bin"
-gcloud --version
-```
+## Troubleshooting
 
-`AI_assistant` is required by the Cloud Run runtime.
+- `Gemini API is not configured`
+  - Set one of the API key env vars listed above.
 
-Quick verification after deploy:
+- Frontend works but API calls fail in dev mode
+  - Ensure backend (`npm run start`) is running on port 8080.
 
-- `GET /healthz` should return `{ "ok": true }`
-- `GET /api/ai/status` should return `aiConfigured: true` and `provider: "google-gemini"`
-
-## Scripts
-
-- `npm run dev` - Vite dev server on port 3000
-- `npm run build` - build frontend assets
-- `npm run start` - run Express server (`server.js`)
-- `npm run preview` - preview Vite build
-- `npm run lint` - TypeScript check (`tsc --noEmit`)
-- `npm run deploy:cloudrun` - deploy to Google Cloud Run
-- `npm run clean` - remove `dist` (Unix-style command)
+- `npm run clean` fails on Windows
+  - The script uses `rm -rf`. Use PowerShell: `Remove-Item -Recurse -Force dist`.
 
 ## Official Portals Referenced
 
@@ -153,4 +165,4 @@ Quick verification after deploy:
 
 ## License
 
-Apache-2.0.
+Apache-2.0
