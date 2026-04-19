@@ -1,168 +1,118 @@
-# SenangGov
+# 🇲🇾 SenangGov
 
-SenangGov is a React + Express assistant for Malaysian renewal workflows:
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Gemini](https://img.shields.io/badge/Powered%20By-Google%20Gemini-orange?logo=google-gemini)](https://ai.google.dev/)
 
-- Passport renewal guidance
-- Road tax renewal guidance
-- Driving licence renewal guidance
+**SenangGov** is an intelligent assistant designed to simplify Malaysian government renewal workflows. Built with a chat-first approach, it provides clear, step-by-step guidance for essential citizen services, ensuring you are "ready" before you visit the counter or portal.
 
-The app has:
+[**🌐 Live Demo**](https://senanggov-817098333774.europe-west1.run.app/)
 
-- Frontend: Vite + React (chat-first UI)
-- Backend: Express API + Gemini integration + lightweight RAG
+---
 
-## Tech Stack
+## ✨ Key Features
 
-- React 19 + TypeScript
-- Vite 6
-- Tailwind CSS 4
-- Express 4
-- Google Gemini API
+* **Smart Guidance:** Interactive flows for:
+    * 🛂 **Passport Renewal** (via myPasport)
+    * 🚗 **Road Tax Renewal** (via MyJPJ/MyEG)
+    * 🪪 **Driving Licence Renewal**
+* **Eligibility Engine:** Automated status checks (`Ready`, `Blocked`, or `Pending`) based on user input.
+* **AI-Powered Insights:** Uses Google Gemini with a lightweight RAG (Retrieval-Augmented Generation) system to provide context-aware answers from local knowledge snippets.
+* **Modern UI:** A responsive, sleek chat interface built with React 19 and Tailwind CSS 4.
 
-## What This App Provides
+---
 
-- Guided eligibility checks with statuses like `ready`, `blocked`, and `pending`
-- Rule-based flows for passport, road tax, and licence scenarios
-- Retrieval-augmented context from local knowledge snippets (`functions/api/rag.js`)
-- API endpoint `POST /api/ai` for chat responses
+## 🛠️ Tech Stack
 
-## Prerequisites
+- **Frontend:** React 19, TypeScript, Vite 6, Tailwind CSS 4
+- **Backend:** Node.js, Express 4
+- **AI Integration:** Google Gemini API (2.0 Flash)
+- **Deployment:** Docker, Google Cloud Run
 
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
 - Node.js 18+
 - npm
+- A Google Gemini API Key ([Get one here](https://aistudio.google.com/))
 
-## Installation
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/ChongBingQian/SenangGov.git](https://github.com/ChongBingQian/SenangGov.git)
+   cd SenangGov
+   ```
+2. Instal Dependencies:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm install
-```
+### Configuration
+Create a .env file in the root directory:
+   ```bash
+   GEMINI_API_KEY=your_actual_key_here
+   PORT = 8080
+   GEMINI_MODEL=gemini-2.0-flash
+   ```
+---
 
-## Environment Variables
-
-Set at least one Gemini API key variable:
-
-- `GEMINI_API_KEY` (recommended)
-- `GOOGLE_API_KEY`
-- `GOOGLE_GENAI_API_KEY`
-- `AI_ASSISTANT`
-- `AI_assistant`
-
-Optional:
-
-- `GEMINI_MODEL` (default: `gemini-2.5-flash`)
-- `PORT` (default: `8080`)
-
-Example PowerShell:
-
-```powershell
-$env:GEMINI_API_KEY="your_key_here"
-```
-
-## Run The Whole App (Recommended)
-
-This is the closest local behavior to production.
-
-1. Build frontend assets:
-
-```bash
+## 🏃 Running the App
+Option 1: Full Stack (Recommended)
+This builds the frontend and serves it through the Express backend.
+``` bash
 npm run build
-```
-
-2. Start Express server:
-
-```bash
 npm run start
 ```
+Access the app at: http://localhost:8080
 
-3. Open the app:
+Option 2: Development Mode
+Run both processes for hot-reloading during development.
+- Terminal A (Backend): ``` npm run start ```
+- Terminal B (Frontend): ``` npm run dev ``` (Runs on port 3000 with proxy to 8080)
 
-- http://localhost:8080/
+---
 
-4. Verify health:
-
-- `GET http://localhost:8080/healthz` -> `{ "ok": true }`
-- `GET http://localhost:8080/api/ai/status` -> provider/model/config status
-
-## Development Mode (Two Processes)
-
-Use this when actively editing frontend code.
-
-Terminal A (backend API):
-
-```bash
-npm run start
-```
-
-Terminal B (frontend with proxy):
-
-```bash
-npm run dev
-```
-
-Open:
-
-- http://localhost:3000/
-
-In this mode, Vite proxies `/api` and `/healthz` to `http://localhost:8080`.
-
-## Scripts
-
-- `npm run dev` - start Vite dev server on port 3000
-- `npm run build` - build frontend into `dist`
-- `npm run start` - run Express server (`server.js`) on port 8080 by default
-- `npm run preview` - preview built frontend only
-- `npm run lint` - TypeScript type check (`tsc --noEmit`)
-- `npm run deploy:cloudrun` - deploy to Google Cloud Run
-- `npm run clean` - remove `dist` (Unix-style command)
-
-## Docker
-
-Build and run:
-
-```bash
+## 🐳 Docker Support
+To run the application in a containerized environment:
+``` bash
+# Build the image
 docker build -t senanggov .
+
+# Run the container
 docker run -p 8080:8080 -e GEMINI_API_KEY=your_key_here senanggov
 ```
 
-## Cloud Run Deployment
+---
 
-Enable required services:
+## 🔌 API Endpoints
 
-```bash
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
-```
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/healthz` | `GET` | System health check |
+| `/api/ai/status` | `GET` | Check AI model configuration status |
+| `/api/ai` | `POST` | Main assistant chat endpoint |
 
-Deploy:
+---
 
-```bash
-gcloud run deploy senanggov --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
-```
+## 🔗 Official Portals Referenced
 
-PowerShell note: use one line commands (or PowerShell backticks), not shell `\` continuations.
+The assistant provides guidance and workflows based on the following official Malaysian service portals:
 
-## API Endpoints
+| Service | Portal Name | URL |
+| :--- | :--- | :--- |
+| **Immigration** | myPasport | [Visit Portal](https://imigresen-online.imi.gov.my/eservices/myPasport) |
+| **Transport** | JPJ / MyJPJ | [Visit Portal](https://www.jpj.gov.my/myjpj/) |
+| **General** | MyEG | [Visit Portal](https://www.myeg.com.my) |
 
-- `GET /healthz` - health check
-- `GET /api/ai/status` - AI provider/model/config check
-- `POST /api/ai` - main assistant endpoint
+---
 
-## Troubleshooting
+## 📜 License
+Distributed under the Apache-2.0 License. See ``` LICENSE ``` for more information.
 
-- `Gemini API is not configured`
-  - Set one of the API key env vars listed above.
+---
 
-- Frontend works but API calls fail in dev mode
-  - Ensure backend (`npm run start`) is running on port 8080.
-
-- `npm run clean` fails on Windows
-  - The script uses `rm -rf`. Use PowerShell: `Remove-Item -Recurse -Force dist`.
-
-## Official Portals Referenced
-
-- Immigration (myPasport): https://imigresen-online.imi.gov.my/eservices/myPasport
-- JPJ / MyJPJ: https://www.jpj.gov.my/myjpj/
-- MyEG: https://www.myeg.com.my
-
-## License
-
-Apache-2.0
+Developed with ❤️ BingQian
